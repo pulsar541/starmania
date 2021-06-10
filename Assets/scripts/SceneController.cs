@@ -142,8 +142,8 @@ public class SceneController : MonoBehaviour
 
                 switch (dir)
                 {
-                    case Dir.GO_UP: if (j_cut + 2 < Global.CUBES_J) j_cut++; break;
-                    case Dir.GO_DOWN: if (j_cut > 1) j_cut--; break;
+                    case Dir.GO_UP: if (j_cut + 2 < Global.CUBES_J) j_cut++; steps =  Random.Range(0, 3); break;
+                    case Dir.GO_DOWN: if (j_cut > 1) j_cut--; steps =  Random.Range(0, 3); break;
                     case Dir.GO_FORWARD: if (k_cut + 2 < Global.CUBES_K) k_cut++; break;
                     case Dir.GO_BACK: if (k_cut > 2) k_cut--; break;
                     case Dir.GO_RIGHT: if (i_cut + 2 < Global.CUBES_I) i_cut++; break;
@@ -309,12 +309,12 @@ public class SceneController : MonoBehaviour
         int temp_max_cut = max_cut;
         int steps = 0;
          
-        int fromRoomToRoom = 16, door_door = 16;
+        int fromRoomToRoom = 16 ;
 
         do
         {
             Dir dir = (Dir)Random.Range(0.0f, (int)Dir.GO_DOWN);
-            steps = Random.Range(6, 22);
+            steps = Random.Range(3, 12);
             if (dir == Dir.GO_UP || dir == Dir.GO_DOWN) steps = (int)Random.Range(0.0f, 4.0f);
 
             ProrezKoridor(steps, dir, 4);

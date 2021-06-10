@@ -8,12 +8,15 @@ public class FPSInput : MonoBehaviour
 {
     private CharacterController _charController;
 
+    [SerializeField] private GameObject fireballPrefab;
+
+    private GameObject _fireball;
 
    // private Rigidbody _rigidBody;
 
     public float gravity = 0;
     private float _distanceMove = 0.0f;
-    public float speed = 6.0f;
+    public float speed = 1.0f;
 
     private float _vertSpeed;
     public const float baseSpeed = 6.0f;
@@ -33,7 +36,7 @@ public class FPSInput : MonoBehaviour
     private float _rotationX = 0;
     private float _rotationY = 0;
 
-    private bool _inputEnable = true;
+    private bool _gravityEnable = false;
 
     void Awake()
     {
@@ -60,12 +63,7 @@ public class FPSInput : MonoBehaviour
     {
         return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2));
     }
-
-    public void SetInputEnable(bool value)
-    {
-        _inputEnable = value;
-    }
-
+ 
     // Update is called once per frame
     void Update()
     {
@@ -94,64 +92,67 @@ public class FPSInput : MonoBehaviour
     	_charController.Move(movement);
 
 */
-                if (_inputEnable)
+
+            _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
+            _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
+            float delta = Input.GetAxis("Mouse X") * sensivityHor;
+            _rotationY = transform.localEulerAngles.y + delta;
+            transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+
+
+            float deltaX = Input.GetAxis("Horizontal") * speed;
+            float deltaZ = Input.GetAxis("Vertical") * speed;
+            Vector3 movement = new Vector3(deltaX, 0, deltaZ);
+
+            movement = Vector3.ClampMagnitude(movement, speed); 
+            movement = transform.TransformDirection(movement); 
+
+            if (_charController.isGrounded)
+            {
+                if (Input.GetButtonDown("Jump"))
                 {
-                    _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
-                    _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
-                    float delta = Input.GetAxis("Mouse X") * sensivityHor;
-                    _rotationY = transform.localEulerAngles.y + delta;
-                    transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+                    _gravityEnable = true;
+                    _vertSpeed = jumpSpeed;
+                }
+                else
+                {
+                    _vertSpeed = minFall;
+                }
+            }
+            else
+            { 
+                if (_gravityEnable)
+                {
+                    _vertSpeed += gravity * 5 * Time.deltaTime;
+                }
+                if (_vertSpeed < terminalVelocity)
+                {
+                    _vertSpeed = terminalVelocity;
+                }
+            }
 
 
-                    float deltaX = Input.GetAxis("Horizontal") * speed;
-                    float deltaZ = Input.GetAxis("Vertical") * speed;
-                    Vector3 movement = new Vector3(deltaX, 0, deltaZ);
-
-                    movement = Vector3.ClampMagnitude(movement, speed); 
-                    movement = transform.TransformDirection(movement); 
-
-                    if (_charController.isGrounded)
-                    {
-                        if (Input.GetButtonDown("Jump"))
-                        {
-                            _vertSpeed = jumpSpeed;
-                        }
-                        else
-                        {
-                            _vertSpeed = minFall;
-                        }
-                    }
-                    else
-                    {
-                        _vertSpeed += gravity * 5 * Time.deltaTime;
-                        if (_vertSpeed < terminalVelocity)
-                        {
-                            _vertSpeed = terminalVelocity;
-                        }
-                    }
+    movement.y = _vertSpeed;
+    movement *= Time.deltaTime; 
+    _charController.Move(movement); 
 
 
-                    movement.y = _vertSpeed;
-                    movement *= Time.deltaTime; 
-                    _charController.Move(movement); 
-                    
-                     }
+     if(Input.GetMouseButtonDown(0)) {
+       
+       // if(_gravityEnable) {
+            _fireball = (GameObject)Instantiate(fireballPrefab);
+            _fireball.transform.position = transform.position; 
+            float weaponSpeed = 5.0f; 
+            Vector3 weaponMovement = new Vector3(0, 0, 1); 
+            weaponMovement = transform.TransformDirection(weaponMovement) * weaponSpeed; 
+            _fireball.transform.position += transform.TransformDirection(new Vector3(0.15f, -0.15f, 0));  
+            _fireball.GetComponent<WeaponLogic>().SetMovement(weaponMovement);
+             
+       // } else {
+            _gravityEnable = true;  
+      //  }
+    }  
 
-         
-
-
-/*
-
-        float deltaX = Input.GetAxis("Horizontal") * speed;
-        float deltaZ = Input.GetAxis("Vertical") * speed;
-
-        if (Input.GetButtonDown("Jump"))
-        {
-            
-            _rigidBody.AddForce(new Vector3(0,10,0), ForceMode.VelocityChange);
-        }
- */
-  
 }
 
 private void OnSpeedChanged(float value)

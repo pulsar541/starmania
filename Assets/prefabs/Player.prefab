@@ -133,6 +133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50b195146e1dac74281873520fc6bcc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fireballPrefab: {fileID: 3461811425147930063, guid: 1824deec1f639624c8c19c16fd0297c5,
+    type: 3}
   gravity: -9.8
   speed: 6
   jumpSpeed: 15
