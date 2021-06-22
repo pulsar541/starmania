@@ -10,6 +10,8 @@ public class FPSInput : MonoBehaviour
 
     [SerializeField] private GameObject fireballPrefab;
 
+    private ControllerColliderHit _contact; 
+
     private GameObject _fireball;
 
    // private Rigidbody _rigidBody;
@@ -130,6 +132,17 @@ public class FPSInput : MonoBehaviour
                     _vertSpeed = terminalVelocity;
                 }
             }
+
+
+            bool hitCeiling = false;
+            RaycastHit hit;
+            if (_vertSpeed > 0 &&   Physics.Raycast(transform.position, Vector3.up, out hit)) {
+                float check =  (_charController.height + _charController.radius) / 1.9f;
+                hitCeiling = hit.distance <= check;
+            }
+            if (hitCeiling) 
+                _vertSpeed = 0;
+
 
 
     movement.y = _vertSpeed;
