@@ -1,7 +1,9 @@
 ﻿using Mirror;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 //[RequireComponent(typeof(CharacterController))]
 //[AddComponentMenu("Control Script/Player")]
 
@@ -10,10 +12,17 @@ public class Player : NetworkBehaviour
 
     //SyncList<Vector3> _SyncVector3Vars = new SyncList<Vector3>();
  
-    public int Health; 
-
+    public int Health;  
     [SyncVar(hook = nameof(SyncHealth))] //задаем метод, который будет выполняться при синхронизации переменной
     int _SyncHealth;
+
+
+
+ 
+    public int Seed; 
+    [SyncVar(hook = nameof(SyncSeed))] //задаем метод, который будет выполняться при синхронизации переменной
+    int _SyncSeed;
+
 
 
     public bool IsLocal {
@@ -77,11 +86,14 @@ public class Player : NetworkBehaviour
     { 
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 0;  
-        Health = 100;
-        
+        Health = 100;  
+
+        DateTime uniDT =   DateTime.Now.ToUniversalTime(); 
+        ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
+       
         if(!levelController.generated) 
         {
-            levelController.GenerateLevel(73); 
+            levelController.GenerateLevel(_SyncSeed); 
             levelController.Build();
         }
     }
@@ -248,6 +260,19 @@ public class Player : NetworkBehaviour
     public void CmdChangeHealth(int newValue) //обязательно ставим Cmd в начале названия метода
     {
         ChangeHealthValue(newValue); //переходим к непосредственному изменению переменной
+    }
+
+
+
+    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
+    public void ChangeSeedValue(int newValue)
+    {
+        _SyncSeed = newValue; 
+    } 
+
+    void SyncSeed(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
+    {
+        Seed = newValue;
     }
 
     // public override void OnStartClient()
