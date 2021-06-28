@@ -5,10 +5,10 @@ using UnityEngine;
 public class WeaponLogic : MonoBehaviour
 {
     // Start is called before the first frame update
-    private Vector3 _movement;
+  //  private Vector3 _movement;
 
     public void SetMovement(Vector3 movement) {
-        _movement = movement;
+      //  _movement = movement;
     }
     void Start()
     {
@@ -18,6 +18,6 @@ public class WeaponLogic : MonoBehaviour
     // Update is called once per frame
     void Update()
     { 
-        transform.position += _movement * Time.deltaTime;
+       // transform.position += _movement * Time.deltaTime;
     }
 }

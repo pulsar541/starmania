@@ -150,9 +150,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de59207b3e0a864a89ea1bccd74c4cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cubePrefab: {fileID: 5717910076182710673, guid: 9e56c17dbc390a741903f4b7146e36e4,
+  cubePrefab: {fileID: 4179643412694862865, guid: 9e56c17dbc390a741903f4b7146e36e4,
     type: 3}
   actualDistance: 12
+  generated: 0
+  buildProcessActive: 0
 --- !u!4 &584682149
 Transform:
   m_ObjectHideFlags: 0
@@ -231,7 +233,8 @@ MonoBehaviour:
     type: 3}
   autoCreatePlayer: 0
   playerSpawnMethod: 0
-  spawnPrefabs: []
+  spawnPrefabs:
+  - {fileID: 3461811425147930063, guid: 1824deec1f639624c8c19c16fd0297c5, type: 3}
   levelControllerPrefab: {fileID: 584682147}
 --- !u!114 &587838433
 MonoBehaviour:

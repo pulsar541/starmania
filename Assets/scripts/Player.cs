@@ -8,7 +8,17 @@ using UnityEngine;
 public class Player : NetworkBehaviour
 {
 
-    SyncList<Vector3> _SyncVector3Vars = new SyncList<Vector3>();
+    //SyncList<Vector3> _SyncVector3Vars = new SyncList<Vector3>();
+ 
+    public int Health; 
+
+    [SyncVar(hook = nameof(SyncHealth))] //задаем метод, который будет выполняться при синхронизации переменной
+    int _SyncHealth;
+
+
+    public bool IsLocal {
+        get {return isLocalPlayer;}
+    }
 
     public List<Vector3> Vector3Vars;
 
@@ -50,47 +60,32 @@ public class Player : NetworkBehaviour
 
     private bool _isMoveEnable = false;
 
+    int cubesCount = 0;
+
+
     void Awake()
-    {
-        //  Messenger<float>.AddListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
-
-
+    { 
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
+        _charController = GetComponent<CharacterController>();
     }
     void OnDestroy()
-    {
-        //   Messenger<float>.RemoveListener(GameEvent.SPEED_CHANGED, OnSpeedChanged);
+    { 
     }
 
     // Start is called before the first frame update
     void Start()
-    {
-        _charController = GetComponent<CharacterController>();
-
-        //  _rigidBody = GetComponent<Rigidbody>();
-
-        _vertSpeed = 0;
-
-        //cameraFPS = GameObject.Find("Main Camera");
-
-
-        if (isServer)
+    { 
+        //  _rigidBody = GetComponent<Rigidbody>(); 
+        _vertSpeed = 0;  
+        Health = 100;
+        
+        if(!levelController.generated) 
         {
-            levelController.GenerateLevel();
-
-            List<Vector3> lst = levelController.GetCubesIJKs();
-            Vector3Vars = new List<Vector3>();
-            foreach (Vector3 item in lst)
-            {
-                Vector3Vars.Add(item);
-                ChangeVector3Vars(item);
-            }
-
+            levelController.GenerateLevel(73); 
             levelController.Build();
         }
-
     }
-
+ 
     float dist(Vector3 a, Vector3 b)
     {
         return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2));
@@ -98,33 +93,7 @@ public class Player : NetworkBehaviour
 
     // Update is called once per frame
     void Update()
-    {
-
-        /*
-        //float speed = (Input.GetKey(KeyCode.LeftShift) ? 2.0f:1.0f) * baseSpeed ; 
-    	float deltaX = Input.GetAxis("Horizontal") * speed;
-    	float deltaZ = Input.GetAxis("Vertical") * speed;
-
-
-    	Vector3 movement = new Vector3(deltaX, 0, deltaZ);
-    	movement = Vector3.ClampMagnitude(movement, speed);
-    	
-
-        _distanceMove +=  Mathf.Sqrt(deltaX*deltaX + deltaZ*deltaZ) ;
-     //   movement.y = gravity;
- 
- 
-        cameraFPS.transform.localPosition = new Vector3(
-            Mathf.Sin(_distanceMove* 0.01f)*0.025f ,  
-            1.0f + Mathf.Cos(_distanceMove* 0.015f)*0.025f  ,  
-            0  );
-
-    	movement *= Time.deltaTime;
-    	movement = transform.TransformDirection(movement);
-    	_charController.Move(movement);
-
-*/
-
+    { 
         if (hasAuthority)
         {
 
@@ -189,27 +158,44 @@ public class Player : NetworkBehaviour
                 _charController.Move(movement);
 
 
-            if (Input.GetMouseButtonDown(0))
+            // if (Input.GetMouseButtonDown(0))
+            // {
+
+            //     if (_isMoveEnable)
+            //     {
+            //         _fireball = (GameObject)Instantiate(fireballPrefab);
+            //         _fireball.transform.position = transform.position;
+            //         float weaponSpeed = 5.0f;
+            //         Vector3 weaponMovement = new Vector3(0, 0, 1);
+            //         weaponMovement = transform.TransformDirection(weaponMovement) * weaponSpeed;
+            //         _fireball.transform.position += transform.TransformDirection(new Vector3(0.15f, -0.15f, 0));
+            //         _fireball.GetComponent<WeaponLogic>().SetMovement(weaponMovement);
+
+            //     }  
+            // }
+ 
+
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
+                Vector3 spawnPos = transform.position;
+                float weaponSpeed = 5.0f;
+                Vector3 weaponMovement = new Vector3(0, 0, 1);
+                weaponMovement = transform.TransformDirection(weaponMovement); //* weaponSpeed;
+                spawnPos += transform.TransformDirection(new Vector3(0.15f, -0.15f, 0));
 
-                if (_isMoveEnable)
-                {
-                    _fireball = (GameObject)Instantiate(fireballPrefab);
-                    _fireball.transform.position = transform.position;
-                    float weaponSpeed = 5.0f;
-                    Vector3 weaponMovement = new Vector3(0, 0, 1);
-                    weaponMovement = transform.TransformDirection(weaponMovement) * weaponSpeed;
-                    _fireball.transform.position += transform.TransformDirection(new Vector3(0.15f, -0.15f, 0));
-                    _fireball.GetComponent<WeaponLogic>().SetMovement(weaponMovement);
 
-                }
+                if (isServer)
+                    SpawnFireball(netId, spawnPos, weaponMovement, weaponSpeed);
                 else
-                {
-                    _isMoveEnable = true;
-                }
-
+                    CmdSpawnFireball(netId, spawnPos, weaponMovement, weaponSpeed);
             }
 
+
+
+            if(levelController.Builded) {
+                 _isMoveEnable = true; 
+            }
+  
 
         } // if hasAuthority
 
@@ -227,71 +213,105 @@ public class Player : NetworkBehaviour
     }
 
 
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-
-        _SyncVector3Vars.Callback += SyncVector3Vars; //вместо hook, для SyncList используем подписку на Callback
-
-        Vector3Vars = new List<Vector3>(_SyncVector3Vars.Count); //так как Callback действует только на изменение массива,  
-        for (int i = 0; i < _SyncVector3Vars.Count; i++) //а у нас на момент подключения уже могут быть какие-то данные в массиве, нам нужно эти данные внести в локальный массив
-        {
-            Vector3Vars.Add(_SyncVector3Vars[i]);
-        }
-
-        if (Vector3Vars.Count > 0)
-        {
-            levelController.ImportLevel(Vector3Vars);
-            levelController.Build();
-
-            Debug.Log("_SyncVector3Vars " + _SyncVector3Vars.Count);
-            Debug.Log("Vector3Vars " + Vector3Vars.Count);
-        }
-
-    }
 
     [Server]
-    void ChangeVector3Vars(Vector3 newValue)
+    public void SpawnFireball(uint owner, Vector3 startPos, Vector3 dir, float speed)
     {
-        _SyncVector3Vars.Add(newValue);
+        GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
+        NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
+        fireballGo.GetComponent<Fireball>().Init(owner, startPos, dir, speed); //инициализируем поведение пули
     }
+
     [Command]
-    public void CmdChangeVector3Vars(Vector3 newValue)
+    public void CmdSpawnFireball(uint owner, Vector3 startPos, Vector3 dir, float speed)
     {
-        ChangeVector3Vars(newValue);
+        SpawnFireball(owner, startPos, dir, speed);
+    }
+  
+    void SyncHealth(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
+    {
+        Health = newValue;
     }
 
-
-
-    void SyncVector3Vars(SyncList<Vector3>.Operation op, int index, Vector3 oldItem, Vector3 newItem)
+    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
+    public void ChangeHealthValue(int newValue)
     {
-        switch (op)
+        _SyncHealth = newValue;
+
+        if (_SyncHealth <= 0)
         {
-            case SyncList<Vector3>.Operation.OP_ADD:
-                {
-                    Vector3Vars.Add(newItem);
-                    break;
-                }
-            case SyncList<Vector3>.Operation.OP_CLEAR:
-                {
-
-                    break;
-                }
-            case SyncList<Vector3>.Operation.OP_INSERT:
-                {
-
-                    break;
-                }
-            case SyncList<Vector3>.Operation.OP_REMOVEAT:
-                {
-
-                    break;
-                }
-            case SyncList<Vector3>.Operation.OP_SET:
-                {
-                    //  Vector3Vars = new List<Vector3>(levelController.GetCubesIJKs());
-                    break;
-                }
+            NetworkServer.Destroy(gameObject);
         }
+    } 
+
+    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
+    public void CmdChangeHealth(int newValue) //обязательно ставим Cmd в начале названия метода
+    {
+        ChangeHealthValue(newValue); //переходим к непосредственному изменению переменной
     }
+
+    // public override void OnStartClient()
+    // {
+    //     base.OnStartClient();
+    //     _SyncVector3Vars.Callback += SyncVector3Vars; //вместо hook, для SyncList используем подписку на Callback 
+    //     Vector3Vars = new List<Vector3>();//(_SyncVector3Vars.Count); //так как Callback действует только на изменение массива,  
+    //     for (int i = 0; i < _SyncVector3Vars.Count; i++) //а у нас на момент подключения уже могут быть какие-то данные в массиве, нам нужно эти данные внести в локальный массив
+    //     {
+    //         Vector3Vars.Add(_SyncVector3Vars[i]);
+    //     }
+
+
+    //     Debug.Log("OnStartClient. _SyncVector3Vars "  +_SyncVector3Vars.Count);
+
+
+    //     if(Vector3Vars.Count > 0) {
+    //        // for (int i = 0; i < Vector3Vars.Count; i++) 
+    //         levelController.ImportLevel(Vector3Vars);     
+    //         levelController.Build(); 
+    //     }
+ 
+    // }
+
+    // [Server]
+    // void ChangeVector3Vars(Vector3 newValue)
+    // {
+    //     _SyncVector3Vars.Add(newValue);
+    // }
+    //  [Command]
+    //  public void CmdChangeVector3Vars(Vector3 newValue)
+    //  {
+    //      ChangeVector3Vars(newValue);
+    //  }
+
+
+    // void SyncVector3Vars(SyncList<Vector3>.Operation op, int index, Vector3 oldItem, Vector3 newItem)
+    // {
+    //     switch (op)
+    //     {
+    //         case SyncList<Vector3>.Operation.OP_ADD:
+    //             {
+    //                 Vector3Vars.Add(newItem);
+    //                 break;
+    //             }
+    //         case SyncList<Vector3>.Operation.OP_CLEAR:
+    //             {
+    //                 // Vector3Vars.Clear();
+    //                 break;
+    //             }
+    //         case SyncList<Vector3>.Operation.OP_INSERT:
+    //             {
+
+    //                 break;
+    //             }
+    //         case SyncList<Vector3>.Operation.OP_REMOVEAT:
+    //             {
+
+    //                 break;
+    //             }
+    //         case SyncList<Vector3>.Operation.OP_SET:
+    //             {
+    //                 break;
+    //             }
+    //     }
+    // }
 }

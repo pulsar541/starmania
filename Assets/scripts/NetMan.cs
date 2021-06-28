@@ -20,10 +20,9 @@ public class NetMan : NetworkManager
     public override void OnStartServer()
     {
         base.OnStartServer();
-        NetworkServer.RegisterHandler<PosMessage>(OnCreateCharacter); //указываем, какой struct должен прийти на сервер, чтобы выполнился свапн
- 
-    //    levelControllerPrefab.GetComponent<LevelController>().GenerateLevel();
-   //     levelControllerPrefab.GetComponent<LevelController>().Build();        
+        playerSpawned = false;   
+        playerConnected = false;
+        NetworkServer.RegisterHandler<PosMessage>(OnCreateCharacter); //указываем, какой struct должен прийти на сервер, чтобы выполнился свапн    
     }
  
 
@@ -43,18 +42,20 @@ public class NetMan : NetworkManager
     {
         base.OnClientConnect(conn);
         connection = conn;
-        playerConnected = true;
-
-        //levelControllerPrefab.GetComponent<LevelController>().InitLevel();
-
+        playerConnected = true; 
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && !playerSpawned && playerConnected)
+        if (/*Input.GetKeyDown(KeyCode.Mouse0) &&*/ !playerSpawned && playerConnected)
         {
-            ActivatePlayerSpawn(new Vector3(Global.CUBES_I/2,Global.CUBES_J/2,Global.CUBES_K/2));
+            ActivatePlayerSpawn(LevelController.mapCenter);
         }
+    }
+
+
+    public override void OnStopServer() {
+       levelControllerPrefab.GetComponent<LevelController>().Clear();  
     }
 }
  

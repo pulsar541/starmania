@@ -5,21 +5,37 @@ using UnityEngine;
 
 public class LevelController : MonoBehaviour
 {
-    [SerializeField] private GameObject cubePrefab;
-   // [SerializeField] private GameObject playerPrefab;
+ 
+    public static int CUBES_I = 100; 
+    public static int CUBES_J = 100;
+    public static int CUBES_K = 100;
+    
+    public int[,,] cubes;
+
+    public static Vector3 mapCenter = new Vector3(CUBES_I/2, CUBES_J/2, CUBES_K/2);
+
+    [SerializeField] private GameObject cubePrefab; 
 
     public int actualDistance = 5;
 
-    private GameObject[,,] _cube = new GameObject[Global.CUBES_I, Global.CUBES_J, Global.CUBES_K];
+    private GameObject[,,] _cube = new GameObject[CUBES_I, CUBES_J, CUBES_K];
 
-    private List<GameObject> _actualCubeList = new List<GameObject>();
-    //private bool[,,] _instantiateFlags = new bool[Global.CUBES_I, Global.CUBES_J, Global.CUBES_K];
+    private List<GameObject> _actualCubeList = new List<GameObject>(); 
 
     bool isLevelBuilding = true;
 
     private GameObject _player;
 
     Vector3 playerPos; 
+
+    public bool generated = false;
+
+    public bool buildProcessActive = false;
+
+    private bool _builded = false;
+    public bool Builded {
+        get {return _builded;}
+    }
 
     enum Dir
     {
@@ -48,40 +64,64 @@ public class LevelController : MonoBehaviour
         return (i >= 0
                  && j >= 0
                  && k >= 0
-                 && i < Global.CUBES_I
-                 && j < Global.CUBES_J
-                 && k < Global.CUBES_K);
+                 && i < CUBES_I
+                 && j < CUBES_J
+                 && k < CUBES_K);
+    }
+
+
+    public void Clear() {
+
+        for (int i = 0; i < CUBES_I; i++)
+        {
+            for (int j = 0; j < CUBES_J; j++) 
+            {
+                for (int k = 0; k < CUBES_K; k++)
+                {
+                    if(cubes[i, j, k] != 0) {
+                        if(_cube[i,j,k] != null)
+                            Destroy(_cube[i,j,k]);
+                        cubes[i, j, k] = 0;
+                    }
+                }
+            }
+        }
+ 
+
+        generated = false;
+        _builded = false;
+        buildProcessActive = false;
     }
 
 
     void OptimizationLevel()
     {
 
-        for (int i = 1; i < Global.CUBES_I - 1; i++)
-            for (int j = 1; j < Global.CUBES_J - 1; j++)
-                for (int k = 1; k < Global.CUBES_K - 1; k++)
+        for (int i = 1; i < CUBES_I - 1; i++)
+            for (int j = 1; j < CUBES_J - 1; j++)
+                for (int k = 1; k < CUBES_K - 1; k++)
                 {
-                    if (Global.cubes[i + 1, j, k] != 0 && Global.cubes[i - 1, j, k] != 0 &&
-                        Global.cubes[i, j + 1, k] != 0 && Global.cubes[i, j - 1, k] != 0 &&
-                        Global.cubes[i, j, k + 1] != 0 && Global.cubes[i, j, k - 1] != 0
-                    ) Global.cubes[i, j, k] = -1;
+                    if (cubes[i + 1, j, k] != 0 && cubes[i - 1, j, k] != 0 &&
+                        cubes[i, j + 1, k] != 0 && cubes[i, j - 1, k] != 0 &&
+                        cubes[i, j, k + 1] != 0 && cubes[i, j, k - 1] != 0
+                    ) cubes[i, j, k] = -1;
 
                 }
 
-        for (int i = 0; i < Global.CUBES_I; i++)
-            for (int j = 0; j < Global.CUBES_J; j++)
-                for (int k = 0; k < Global.CUBES_K; k++)
+        for (int i = 0; i < CUBES_I; i++)
+            for (int j = 0; j < CUBES_J; j++)
+                for (int k = 0; k < CUBES_K; k++)
                 {
-                    if (i == 0 || j == 0 || k == 0 || i == Global.CUBES_I - 1 || j == Global.CUBES_J - 1 || k == Global.CUBES_K - 1)
-                        Global.cubes[i, j, k] = -1;
+                    if (i == 0 || j == 0 || k == 0 || i == CUBES_I - 1 || j == CUBES_J - 1 || k == CUBES_K - 1)
+                        cubes[i, j, k] = -1;
                 }
 
-        for (int i = 0; i < Global.CUBES_I; i++)
-            for (int j = 0; j < Global.CUBES_J; j++)
-                for (int k = 0; k < Global.CUBES_K; k++)
+        for (int i = 0; i < CUBES_I; i++)
+            for (int j = 0; j < CUBES_J; j++)
+                for (int k = 0; k < CUBES_K; k++)
                 {
-                    if (Global.cubes[i, j, k] == -1)
-                        Global.cubes[i, j, k] = 0;
+                    if (cubes[i, j, k] == -1)
+                        cubes[i, j, k] = 0;
                 }
 
     }
@@ -94,12 +134,12 @@ public class LevelController : MonoBehaviour
 
             switch (dir)
             {
-                case Dir.GO_UP: if (j_cut + 2 < Global.CUBES_J) j_cut++; break;
-                case Dir.GO_DOWN: if (j_cut > 1) j_cut--; break;
+                case Dir.GO_UP: if (j_cut + 2 < CUBES_J) j_cut++; break;
+                case Dir.GO_DOWN: if (j_cut > 2) j_cut--; break;
 
-                case Dir.GO_FORWARD: case Dir.GO_BACK: if (k_cut + 2 < Global.CUBES_K) k_cut++; break;
-                //	case GO_BACK: 		case GO_BACK2: 		if(j_cut>2		 		) j_cut--; break;
-                case Dir.GO_RIGHT: if (i_cut + 2 < Global.CUBES_I) i_cut++; break;
+                case Dir.GO_FORWARD: /*case Dir.GO_BACK:*/ if (k_cut + 2 < CUBES_K) k_cut++; break;
+                	case Dir.GO_BACK: 		/*case GO_BACK2:*/ 		if(k_cut>2		 		) k_cut--; break;
+                case Dir.GO_RIGHT: if (i_cut + 2 < CUBES_I) i_cut++; break;
                 case Dir.GO_LEFT: if (i_cut > 2) i_cut--; break;
             }
 
@@ -110,7 +150,7 @@ public class LevelController : MonoBehaviour
                     for (int kk = k_cut; kk <= k_cut + width; kk++)
                         if (correctIndex(ii, jj, kk))
                         {
-                            Global.cubes[ii, jj, kk] = 0;
+                            cubes[ii, jj, kk] = 0;
                         }
         }
     }
@@ -143,19 +183,19 @@ public class LevelController : MonoBehaviour
 
                 switch (dir)
                 {
-                    case Dir.GO_UP: if (j_cut + 2 < Global.CUBES_J) j_cut++; steps =  Random.Range(0, 3); break;
+                    case Dir.GO_UP: if (j_cut + 2 < CUBES_J) j_cut++; steps =  Random.Range(0, 3); break;
                     case Dir.GO_DOWN: if (j_cut > 1) j_cut--; steps =  Random.Range(0, 3); break;
-                    case Dir.GO_FORWARD: if (k_cut + 2 < Global.CUBES_K) k_cut++; break;
+                    case Dir.GO_FORWARD: if (k_cut + 2 < CUBES_K) k_cut++; break;
                     case Dir.GO_BACK: if (k_cut > 2) k_cut--; break;
-                    case Dir.GO_RIGHT: if (i_cut + 2 < Global.CUBES_I) i_cut++; break;
+                    case Dir.GO_RIGHT: if (i_cut + 2 < CUBES_I) i_cut++; break;
                     case Dir.GO_LEFT: if (i_cut > 2) i_cut--; break;
                 }
 
-                Global.cubes[i_cut, j_cut, k_cut] = 0;
+                cubes[i_cut, j_cut, k_cut] = 0;
 
                 if (dir == Dir.GO_UP || dir == Dir.GO_DOWN)
                 {
-                  //  Global.cubes[i_cut, j_cut, k_cut] = 2; //water
+                  //  cubes[i_cut, j_cut, k_cut] = 2; //water
                     //   cubes[i_cut][j_cut][k_cut].radius = 0.33f;
                     //   cubes[i_cut][j_cut][k_cut].x=i_cut*2-0.7f;
                     //   cubes[i_cut][j_cut][k_cut].y=j_cut*2-0.7f;
@@ -182,15 +222,14 @@ public class LevelController : MonoBehaviour
                     if (correctIndex(ii, jj, kk))
                     {
                         int rr = Random.Range(0, 100);
-                        if (rr < 50 || rr > 55) Global.cubes[ii, jj, kk] = 0;
+                        if (rr < 50 || rr > 55) cubes[ii, jj, kk] = 0;
                     }
-
-        //  make_random_room(i_cut,j_cut,k_cut);
+ 
     }
 
     IEnumerator UpdateActualCubes()
     {
-        if (_player != null)
+        if (_player != null && generated)
         {        
             Vector3 playerPos = _player.transform.position;
 
@@ -229,72 +268,24 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    // IEnumerator UpdateActualCubes()
-    // {
-    //     Vector3 playerPos = playerPrefab.transform.position;
-
-    //     foreach (GameObject actCube in _actualCubeList)
-    //     {
-
-    //         if ((int)actCube.transform.position.x < playerPos.x - actualDistance * 2
-    //             || (int)actCube.transform.position.y < playerPos.y - actualDistance * 2
-    //             || (int)actCube.transform.position.z < playerPos.z - actualDistance * 2
-    //            || (int)actCube.transform.position.x > playerPos.x + actualDistance * 2
-    //             || (int)actCube.transform.position.y > playerPos.y + actualDistance * 2
-    //             || (int)actCube.transform.position.z > playerPos.z + actualDistance * 2
-    //         )
-    //         {
-    //             _instantiateFlags[(int)actCube.transform.position.x,
-    //                                 (int)actCube.transform.position.y,
-    //                                 (int)actCube.transform.position.z] = false;
-    //             Destroy(actCube);
-    //         }
-    //     }
-    //     _actualCubeList.Clear();
-
-    //     //   yield return null;
-
-    //     if (playerPrefab != null)
-    //     {
-    //         for (int i = (int)playerPrefab.transform.position.x - actualDistance; i < (int)playerPrefab.transform.position.x + actualDistance; i++)
-    //         {
-    //             for (int j = (int)playerPrefab.transform.position.y - actualDistance; j < (int)playerPrefab.transform.position.y + actualDistance; j++)
-    //             {
-    //                 for (int k = (int)playerPrefab.transform.position.z - actualDistance; k < (int)playerPrefab.transform.position.z + actualDistance; k++)
-    //                 {
-    //                     if (correctIndex(i, j, k) && Global.cubes[i, j, k] == 1)
-    //                     {
-    //                         if (!_instantiateFlags[i, j, k])
-    //                         {
-    //                             GameObject tmpCube = (GameObject)Instantiate(cubePrefab);
-    //                             tmpCube.transform.position = new Vector3(i, j, k);
-    //                             _actualCubeList.Add(tmpCube);
-    //                             _instantiateFlags[i, j, k] = true;
-    //                         }
-    //                     }
-
-    //                 }
-
-    //             }
-    //             yield return null;
-    //         }
-    //     }
-
-    // }
-
-    public Vector3 GenerateLevel()
+   
+    public Vector3 GenerateLevel(int seed)
     {
+
+        if(seed > 0)
+            Random.seed = seed;
+
         _isLevelGenerating = true;
 
         Vector3 playerStartPosition; 
 
-        for (int i = 0; i < Global.CUBES_I; i++)
+        for (int i = 0; i < CUBES_I; i++)
         {
-            for (int j = 0; j < Global.CUBES_J; j++) 
+            for (int j = 0; j < CUBES_J; j++) 
             {
-                for (int k = 0; k < Global.CUBES_K; k++)
+                for (int k = 0; k < CUBES_K; k++)
                 {
-                    Global.cubes[i, j, k] = 1;
+                    cubes[i, j, k] = 1;
                 }
             }
         }
@@ -302,10 +293,10 @@ public class LevelController : MonoBehaviour
 
         int di_cut = 0;
         int dj_cut = 0;
-        i_cut = Global.CUBES_I / 2;
-        j_cut = Global.CUBES_J / 2;
-        k_cut = Global.CUBES_K / 2;
-        Global.cubes[i_cut, j_cut, k_cut] = 0;
+        i_cut = CUBES_I / 2;
+        j_cut = CUBES_J / 2;
+        k_cut = CUBES_K / 2;
+        cubes[i_cut, j_cut, k_cut] = 0;
  
         playerStartPosition = new Vector3(i_cut, j_cut, k_cut);
  
@@ -348,6 +339,9 @@ public class LevelController : MonoBehaviour
 
         _isLevelGenerating = false;
 
+
+        generated = true;
+
         return playerStartPosition;
     }
 
@@ -362,35 +356,51 @@ public class LevelController : MonoBehaviour
     }
 
 
-    IEnumerator BuildLevel()
-    {
-        isLevelBuilding = true;
 
-        for (int i = 0; i < Global.CUBES_I; i++)
+    public void Cute(Vector3 pos)
+    {   int i = (int)pos.x;
+        int j = (int)pos.y;
+        int k = (int)pos.z; 
+        cubes[i, j, k] = 0; 
+    }
+
+    public void Insert(Vector3 pos)
+    {   int i = (int)pos.x;
+        int j = (int)pos.y;
+        int k = (int)pos.z; 
+        cubes[i, j, k] = 1; 
+
+        Debug.Log("Insert" + cubes[i, j, k]);
+    }
+
+    IEnumerator BuildLevel()
+    {   Debug.Log("BuildLevel");
+
+        buildProcessActive = true; 
+        isLevelBuilding = true;
+        _builded = false;
+
+        int iterator = 0;
+
+        for (int i = 0; i < CUBES_I; i++)
         {
-            for (int j = 0; j < Global.CUBES_J; j++)
+            for (int j = 0; j < CUBES_J; j++)
             {
-                for (int k = 0; k < Global.CUBES_K; k++)
-                {
-                    //if (correctIndex(i, j, k))
-                    // {
-                    if (Global.cubes[i, j, k] == 1)
+                for (int k = 0; k < CUBES_K; k++)
+                { 
+                    if (cubes[i, j, k] == 1)
                     {
+                        Debug.Log("BuildL " + i + j + k);
+
                         _cube[i, j, k] = (GameObject)Instantiate(cubePrefab);
                         _cube[i, j, k].transform.position = new Vector3(i, j, k);
-                        _cube[i, j, k].SetActive(true);
+                        _cube[i, j, k].SetActive(true); 
 
-                        //  GameObject tmpCube = (GameObject)Instantiate(cubePrefab, new Vector3(i, j, k), Quaternion.identity);
-                        //    _actualCubeList.Add(tmpCube);
-                        //_instantiateFlags[i, j, k] = true;
+                    } 
+                    iterator++;
 
-                        //StartCoroutine(BuildCube(i,j,k, new Vector3(i, j, k))); 
-
-
-                    }
-                    // }
-
-
+                    if(iterator >= CUBES_I * CUBES_J * CUBES_K)
+                        _builded = true;
                 }
 
             }
@@ -406,7 +416,7 @@ public class LevelController : MonoBehaviour
     }
 
     void Start() {
-         Global.cubes = new int[Global.CUBES_I, Global.CUBES_J, Global.CUBES_K]; 
+         cubes = new int[CUBES_I, CUBES_J, CUBES_K]; 
     } 
 
 
@@ -419,13 +429,13 @@ public class LevelController : MonoBehaviour
     public List<Vector3> GetCubesIJKs() {
         List<Vector3> list = new List<Vector3>();
         
-        for (int i = 0; i < Global.CUBES_I; i++)
+        for (int i = 0; i < CUBES_I; i++)
         {
-            for (int j = 0; j < Global.CUBES_J; j++)
+            for (int j = 0; j < CUBES_J; j++)
             {
-                for (int k = 0; k < Global.CUBES_K; k++)
+                for (int k = 0; k < CUBES_K; k++)
                 {
-                    if(Global.cubes[i, j, k] == 1)
+                    if(cubes[i, j, k] == 1)
                         list.Add(new Vector3(i,j,k));
                 }
             }
@@ -435,14 +445,14 @@ public class LevelController : MonoBehaviour
 
     public void ImportLevel(List<Vector3> list) {
 
-        for (int i = 0; i < Global.CUBES_I; i++)
-            for (int j = 0; j < Global.CUBES_J; j++)
-                for (int k = 0; k < Global.CUBES_K; k++)
-                    Global.cubes[i, j, k] = 0; 
+        for (int i = 0; i < CUBES_I; i++)
+            for (int j = 0; j < CUBES_J; j++)
+                for (int k = 0; k < CUBES_K; k++)
+                    cubes[i, j, k] = 0; 
 
         foreach (Vector3 itemIJK in list) {
-            Global.cubes[(int)itemIJK.x, (int)itemIJK.y, (int)itemIJK.z] = 1;
-        }
+            cubes[(int)itemIJK.x, (int)itemIJK.y, (int)itemIJK.z] = 1;
+        } 
     }
 
 
@@ -454,16 +464,7 @@ public class LevelController : MonoBehaviour
         if (_msek > 0.5f)
         { 
             _msek = 0;
-            StartCoroutine(UpdateActualCubes());
- 
-            if(!isLevelBuilding) {
-               // playerPrefab.gameObject.GetComponent<FPSInput>().SetInputEnable(true);
-
-                //_player.SetActive(true);
-
-
-                //isLevelBuilding = true;
-            }
+            StartCoroutine(UpdateActualCubes()); 
         }
 
 

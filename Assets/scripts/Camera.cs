@@ -25,7 +25,7 @@ public class Camera : MonoBehaviour
             }
             _msek += Time.deltaTime;
         } 
-        else {
+        else if(_player.IsLocal) {
             transform.position = _player.transform.position;
             transform.rotation = _player.transform.rotation;
         }
