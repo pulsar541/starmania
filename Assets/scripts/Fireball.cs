@@ -45,8 +45,10 @@ public class Fireball : NetworkBehaviour
             foreach (var item in Physics.OverlapBox(transform.position, new Vector3(0,0,0), Quaternion.identity))
             { 
                 Cube cube = item.GetComponent<Cube>();
-                if(cube)
+                if(cube) {
                     NetworkServer.Destroy(gameObject);    
+                 //   NetworkServer.Destroy(cube.gameObject);
+                }
             }
 
             if (Vector3.Distance(transform.position, start) > 50)  

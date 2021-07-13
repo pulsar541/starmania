@@ -18,17 +18,17 @@ public class Camera : MonoBehaviour
     void Update()
     {
         
-        if(_player == null) {
-            if(_msek > 0.5f) {
-                _player = (Player)GameObject.FindObjectOfType(typeof(Player));
-                _msek = 0; 
-            }
-            _msek += Time.deltaTime;
-        } 
-        else if(_player.IsLocal) {
-            transform.position = _player.transform.position;
-            transform.rotation = _player.transform.rotation;
-        }
+        // if(_player == null) {
+        //     if(_msek > 0.5f) {
+        //         _player = (Player)GameObject.FindObjectOfType(typeof(Player));
+        //         _msek = 0; 
+        //     }
+        //     _msek += Time.deltaTime;
+        // } 
+        // else if(_player.IsLocal) {
+        //     transform.position = _player.transform.position;
+        //     transform.rotation = _player.transform.rotation;
+        // }
 
        
     }
