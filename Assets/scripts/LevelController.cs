@@ -251,10 +251,9 @@ public class LevelController : MonoBehaviour
     void MakeLamps() {
         lampPositions.Clear();  
         for (int i = 0; i < CUBES_I; i++)
-            for (int j = 1; j < CUBES_J; j++)
+            for (int j = 0; j < CUBES_J-1; j++)
                 for (int k = 0; k < CUBES_K; k++) {
-                    if(cubes[i, j, k] == (int)CubeType.VOID 
-                      //  && cubes[i, j-1, k] != (int)CubeType.WALL 
+                    if(cubes[i, j, k] == (int)CubeType.VOID  && cubes[i, j+1, k] == (int)CubeType.WALL 
                        // && NeihtboursCount(i,j,k, CubeType.WALL) >= 3
 
                         && LampsCount(i,j,k, 5) < 1
@@ -559,7 +558,7 @@ public class LevelController : MonoBehaviour
         k_cut = (int)startPos.z;  
         int max_cut = tunnelsCount;
         int temp_max_cut = max_cut;  
- 
+        int countVertDir = 0; 
         do
         { 
             OrthoDir orthoDir = (OrthoDir)Random.Range(-1, (int)OrthoDir.GO_DOWN + 1 ); 
@@ -578,8 +577,11 @@ public class LevelController : MonoBehaviour
             //  }
 
            if(orthoDir == OrthoDir.GO_DOWN  || orthoDir == OrthoDir.GO_UP) {
-               steps = Random.Range(0, 3);  
+               steps = Random.Range(0, 4);  
                height = 1;
+               countVertDir++;
+               if(countVertDir >=2)
+                    continue;
            }
             ProrezKoridor(steps, dirM, width, height, false, false); 
             max_cut --;   
@@ -625,9 +627,9 @@ public class LevelController : MonoBehaviour
 
         playerStartPosition = new Vector3(i_cut, j_cut, k_cut); 
  
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 7);
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 7);
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 7);
+         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8);
+         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8);
+         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8); 
 
          GenCheckpoints(10);
 

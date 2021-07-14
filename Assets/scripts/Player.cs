@@ -82,6 +82,8 @@ public class Player : NetworkBehaviour
 
     float shiftMulSpeeed = 1;
 
+    float _walkCounter = 0;
+
     void Awake()
     { 
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
@@ -236,8 +238,13 @@ public class Player : NetworkBehaviour
 
 
             if(_fpsCamera) {
-                _fpsCamera.transform.position = _head.transform.position; 
+                _fpsCamera.transform.position = _head.transform.position;  
+                if(_charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))) {
+                       _walkCounter +=  speed * (shiftMulSpeeed > 1?1.5f:1.0f) * Time.deltaTime * 5.0f; 
 
+                }
+                _fpsCamera.transform.position += new Vector3(0,Math.Abs(Mathf.Sin(_walkCounter))*0.05f,0);  
+                _fpsCamera.transform.position +=  _fpsCamera.transform.TransformDirection(new Vector3(-Mathf.Cos(_walkCounter)*0.035f,0,0)); 
                // Vector3 cameraOffset = _head.transform.TransformDirection(new Vector3(0,0,0.1f));
                // _fpsCamera.transform.position += cameraOffset; 
                 _fpsCamera.transform.rotation = _head.transform.rotation; 
@@ -264,6 +271,12 @@ public class Player : NetworkBehaviour
                  _isMoveEnable = true; 
             }
   
+
+            if(IsLocal) {
+                foreach(Renderer r in this.gameObject.GetComponentsInChildren<Renderer>()) { 
+                    r.enabled = false; 
+                    }
+            }
 
         } // if hasAuthority
 

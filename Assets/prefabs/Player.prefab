@@ -106,7 +106,6 @@ GameObject:
   - component: {fileID: 7449839141887364178}
   - component: {fileID: 7449839141887364177}
   - component: {fileID: 7449839141887364176}
-  - component: {fileID: 8174542400683607818}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -122,8 +121,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839141887364174}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.05, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalPosition: {x: 0, y: -0.025, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 7449839142147194481}
   m_RootOrder: 1
@@ -143,7 +142,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839141887364174}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -189,18 +188,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8174542400683607818
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449839141887364174}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f583bed2dc118884481e0d48a26fb75d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7449839142147194480
 GameObject:
   m_ObjectHideFlags: 0
@@ -279,8 +266,8 @@ MonoBehaviour:
     type: 3}
   _head: {fileID: 7449839142903610140}
   gravity: -9.81
-  speed: 2
-  jumpSpeed: 5
+  speed: 1.2
+  jumpSpeed: 4
   terminalVelocity: -10
   minFall: -1.5
   sensivityHor: 9
@@ -321,8 +308,8 @@ CharacterController:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 0.7
-  m_Radius: 0.25
+  m_Height: 0.35
+  m_Radius: 0.125
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
@@ -351,7 +338,7 @@ MonoBehaviour:
   interpolateRotation: 1
   interpolatePosition: 1
   syncScale: 1
-  target: {fileID: 7449839141887364175}
+  target: {fileID: 7449839142903610141}
 --- !u!1 &7449839142595787272
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,7 +351,6 @@ GameObject:
   - component: {fileID: 7449839142595787276}
   - component: {fileID: 7449839142595787275}
   - component: {fileID: 7449839142595787274}
-  - component: {fileID: 8716963527868825558}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -380,8 +366,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839142595787272}
   m_LocalRotation: {x: 0, y: 0, z: 0.38268343, w: 0.92387956}
-  m_LocalPosition: {x: 0.1, y: -0.2, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.15, z: 0.1}
+  m_LocalPosition: {x: 0.05, y: -0.1, z: 0}
+  m_LocalScale: {x: 0.05, y: 0.075, z: 0.05}
   m_Children: []
   m_Father: {fileID: 7449839142147194481}
   m_RootOrder: 2
@@ -447,18 +433,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!114 &8716963527868825558
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449839142595787272}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f583bed2dc118884481e0d48a26fb75d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7449839142903610140
 GameObject:
   m_ObjectHideFlags: 0
@@ -486,8 +460,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839142903610140}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.25, z: 0}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
+  m_LocalPosition: {x: 0, y: 0.125, z: 0}
+  m_LocalScale: {x: 0.125, y: 0.125, z: 0.125}
   m_Children:
   - {fileID: 7449839141833328313}
   m_Father: {fileID: 7449839142147194481}
@@ -565,7 +539,6 @@ GameObject:
   - component: {fileID: 7449839143213287801}
   - component: {fileID: 7449839143213287800}
   - component: {fileID: 7449839143213287799}
-  - component: {fileID: 1828151164423443514}
   m_Layer: 0
   m_Name: Cylinder (1)
   m_TagString: Untagged
@@ -581,8 +554,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839143213287797}
   m_LocalRotation: {x: 0.38268343, y: 0.92387956, z: 0, w: 0}
-  m_LocalPosition: {x: -0.1, y: -0.2, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.15, z: 0.1}
+  m_LocalPosition: {x: -0.05, y: -0.1, z: 0}
+  m_LocalScale: {x: 0.05, y: 0.075, z: 0.05}
   m_Children: []
   m_Father: {fileID: 7449839142147194481}
   m_RootOrder: 3
@@ -648,18 +621,6 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!114 &1828151164423443514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449839143213287797}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f583bed2dc118884481e0d48a26fb75d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7449839143539833078
 GameObject:
   m_ObjectHideFlags: 0
@@ -672,7 +633,6 @@ GameObject:
   - component: {fileID: 7449839143539833082}
   - component: {fileID: 7449839143539833081}
   - component: {fileID: 7449839143539833080}
-  - component: {fileID: 8136636991205471103}
   m_Layer: 0
   m_Name: Cylinder
   m_TagString: Untagged
@@ -688,8 +648,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7449839143539833078}
   m_LocalRotation: {x: 0.5, y: -0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0, y: 0.08, z: 0}
-  m_LocalScale: {x: 0.07, y: 0.25, z: 0.07}
+  m_LocalPosition: {x: 0, y: 0.04, z: 0}
+  m_LocalScale: {x: 0.035, y: 0.125, z: 0.035}
   m_Children: []
   m_Father: {fileID: 7449839142147194481}
   m_RootOrder: 4
@@ -755,15 +715,3 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
---- !u!114 &8136636991205471103
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449839143539833078}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f583bed2dc118884481e0d48a26fb75d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
