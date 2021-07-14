@@ -825,8 +825,14 @@ public class LevelController : MonoBehaviour
         {
             _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z] = (GameObject)Instantiate(pointLightPrefab);
             _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].transform.position = lampPos;  
+            Color lightColor = new Color( 
+                  ((float)((int)(lampPos.x * lampPos.y)%100))/75.0f, 
+                  ((float)((int)(lampPos.y * lampPos.z)%100))/75.0f,  
+                  ((float)((int)(lampPos.z * lampPos.x)%100))/75.0f 
+                );
+            _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].GetComponent<Light>().color = lightColor;
 
-           if(_lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z])
+           if(_lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z]) 
                 _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].SetActive(false);
                     
         }

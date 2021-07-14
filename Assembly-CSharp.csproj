@@ -41,6 +41,7 @@
      <Compile Include="Assets\scripts\Cube.cs" />
      <Compile Include="Assets\scripts\Fireball.cs" />
      <Compile Include="Assets\scripts\Global.cs" />
+     <Compile Include="Assets\scripts\InvisibleGameObject.cs" />
      <Compile Include="Assets\scripts\LevelController.cs" />
      <Compile Include="Assets\scripts\MenuSceneController.cs" />
      <Compile Include="Assets\scripts\NetMan.cs" />

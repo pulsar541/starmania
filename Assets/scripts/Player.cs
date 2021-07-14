@@ -238,15 +238,15 @@ public class Player : NetworkBehaviour
             if(_fpsCamera) {
                 _fpsCamera.transform.position = _head.transform.position; 
 
-              //  Vector3 cameraOffset = _charController.transform.TransformDirection(new Vector3(0,0.4f,0));
-             //    _fpsCamera.transform.position  += cameraOffset; 
+               // Vector3 cameraOffset = _head.transform.TransformDirection(new Vector3(0,0,0.1f));
+               // _fpsCamera.transform.position += cameraOffset; 
                 _fpsCamera.transform.rotation = _head.transform.rotation; 
             }
 
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Vector3 spawnPos = transform.position;
-                float weaponSpeed = 15.0f;
+                float weaponSpeed = 3.0f;
                 Vector3 weaponMovement = new Vector3(0, 0, 1);
                 weaponMovement = _head.transform.TransformDirection(weaponMovement); //* weaponSpeed;
                 spawnPos += _charController.transform.TransformDirection(new Vector3(0.07f, -0.07f, 0));
