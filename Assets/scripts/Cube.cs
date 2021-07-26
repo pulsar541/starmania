@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using Mirror;
+using UnityEngine; 
 
-public class Cube : NetworkBehaviour
+public class Cube : MonoBehaviour
 { 
  
     // Start is called before the first frame update

@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class LevelController : MonoBehaviour
 { 
-    public static class CubeType
+
+     public static class CubeType
     { 
         public const int VOID_OPT = -1;
         public const int VOID = 0;
@@ -31,15 +32,16 @@ public class LevelController : MonoBehaviour
     private List<Vector3> lampPositions = new List<Vector3>();
 
     public static Vector3 mapCenter = new Vector3(CUBES_I / 2, CUBES_J / 2, CUBES_K / 2);
+ 
+    [SerializeField] private GameObject cubeWallPrefab = null;
+    [SerializeField] private GameObject cubeSinglePrefab = null;
+    [SerializeField] private GameObject platformPrefab = null;
 
-    [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private GameObject cubeWallPrefab;
-    [SerializeField] private GameObject cubeSinglePrefab;
-    [SerializeField] private GameObject platformPrefab;
+    [SerializeField] private GameObject pointLightPrefab = null;
 
-    [SerializeField] private GameObject pointLightPrefab;
+    [SerializeField] private GameObject checkPointPrefab = null;
 
-    [SerializeField] private GameObject checkPointPrefab;
+    LightManager lightManager;
 
     public int actualDistance = 3;
 
@@ -50,14 +52,10 @@ public class LevelController : MonoBehaviour
 
 
     private List<Vector3> checkPoints = new List<Vector3>();
- 
   
 
     private List<GameObject> _actualCubeList = new List<GameObject>();
-
-    bool isLevelBuilding = true;
-
-    private GameObject _player;
+     private GameObject _player;
 
     Vector3 playerPos;
 
@@ -87,16 +85,23 @@ public class LevelController : MonoBehaviour
 
 
     Vector3 cutDirection = new Vector3(0,-1,0);
-
-
-    private bool _isLevelGenerating = false;
-
+ 
     float mr()
     {
         return Random.Range(0.0f, 1.0f);
     }
 
-    bool correctIndex(int i, int j, int k)
+ 
+    bool isCorrectCluster(int i, int j, int k)
+    {
+        return (i >= 0
+                 && j >= 0
+                 && k >= 0
+                 && i < CUBES_I
+                 && j < CUBES_J
+                 && k < CUBES_K);
+    }
+    bool isCorrectCluster(float i, float j, float k)
     {
         return (i >= 0
                  && j >= 0
@@ -107,17 +112,16 @@ public class LevelController : MonoBehaviour
     }
 
 
-
     bool isType(int i, int j, int k, int cubeType)
     {
-        return  correctIndex(i, j, k) &&  cubes[i, j, k] == cubeType;
+        return  isCorrectCluster(i, j, k) &&  cubes[i, j, k] == cubeType;
     }
 
 
 
     bool isSolid(int i, int j, int k)
     {
-        return  correctIndex(i, j, k) && (cubes[i, j, k] == CubeType.OUT ||  cubes[i, j, k] == CubeType.WALL);
+        return  isCorrectCluster(i, j, k) && (cubes[i, j, k] == CubeType.OUT ||  cubes[i, j, k] == CubeType.WALL);
     }
 
 
@@ -126,10 +130,10 @@ public class LevelController : MonoBehaviour
         for(int ii = i-radius; ii<=i+radius; ii++)
             for(int jj = j-radius; jj<=j+radius; jj++)   
                 for(int kk = k-radius; kk<=k+radius; kk++)   {
-                    if(ii == jj && jj == kk)
+                    if(ii == i && jj == j && kk == k)
                         continue;
 
-                    if(correctIndex(ii, jj, kk) && cubes[ii, jj, kk] == (int)cubeType) {
+                    if(isCorrectCluster(ii, jj, kk) && cubes[ii, jj, kk] == (int)cubeType) {
                         count ++;
                     }
                 }             
@@ -162,7 +166,7 @@ public class LevelController : MonoBehaviour
                     if(ii == jj && jj == kk)
                         continue;
 
-                    if(correctIndex(ii, jj, kk) && lampPositions.Contains(new Vector3(ii,jj,kk))) {
+                    if(isCorrectCluster(ii, jj, kk) && lampPositions.Contains(new Vector3(ii,jj,kk))) {
                         count ++;
                     }
                 }             
@@ -231,36 +235,55 @@ public class LevelController : MonoBehaviour
 
     void GenCheckpoints(int count) { 
         checkPoints.Clear();
+        List<Vector3> voidOverWallList = new List<Vector3>();
         List<Vector3> voidUnderWallList = new List<Vector3>();
 
         for (int i = 0; i < CUBES_I; i++)
-            for (int j = 1; j < CUBES_J; j++)
-                for (int k = 0; k < CUBES_K; k++)  
-                    if(cubes[i, j, k] == (int)CubeType.VOID && cubes[i, j-1, k] == (int)CubeType.WALL) {
-                         voidUnderWallList.Add(new Vector3(i,j,k));   
-                    }    
+            for (int j = 1; j < CUBES_J-1; j++)
+                for (int k = 0; k < CUBES_K; k++) {
+                    if(cubes[i, j, k] == (int)CubeType.VOID) {
+                        if(cubes[i, j-1, k] == (int)CubeType.WALL) {
+                            voidOverWallList.Add(new Vector3(i,j,k));   
+                        }    
+                        else if(cubes[i, j+1, k] == (int)CubeType.WALL ) {
+                            voidUnderWallList.Add(new Vector3(i,j,k));   
+                        }    
+                    } 
+                }
 
-        for(int c = 0; c < count; c++){
-            int voidsCount = voidUnderWallList.Count;
-            int n = Random.Range(0, voidsCount);
-            checkPoints.Add(voidUnderWallList[n] + new Vector3(0,-0.5f,0));
-            voidUnderWallList.RemoveAt(n);
+        for(int c = 0; c < count/2; c++){
+            int voidsCount = voidOverWallList.Count;
+            if(voidsCount > 0) {
+                int n = Random.Range(0, voidsCount);
+                checkPoints.Add(voidOverWallList[n] + new Vector3(0,-0.5f,0));
+                voidOverWallList.RemoveAt(n);
+            }
+            voidsCount = voidUnderWallList.Count;
+            if(voidsCount > 0) {
+                int n = Random.Range(0, voidsCount);
+                checkPoints.Add(voidUnderWallList[n] + new Vector3(0,0.5f,0));
+                voidUnderWallList.RemoveAt(n);
+            }
+
+
         } 
     }
 
     void MakeLamps() {
-        lampPositions.Clear();  
-        for (int i = 0; i < CUBES_I; i++)
-            for (int j = 0; j < CUBES_J-1; j++)
-                for (int k = 0; k < CUBES_K; k++) {
-                    if(cubes[i, j, k] == (int)CubeType.VOID  && cubes[i, j+1, k] == (int)CubeType.WALL 
-                       // && NeihtboursCount(i,j,k, CubeType.WALL) >= 3
+        lampPositions.Clear(); 
+        lampPositions.Add(LevelController.mapCenter);  
 
-                        && LampsCount(i,j,k, 5) < 1
-                    ) {
-                         lampPositions.Add(new Vector3(i,j,k));  
-                    }
-                }        
+        // for (int i = 0; i < CUBES_I; i++)
+        //     for (int j = 0; j < CUBES_J-1; j++)
+        //         for (int k = 0; k < CUBES_K; k++) {
+        //             if(cubes[i, j, k] == (int)CubeType.VOID  && cubes[i, j+1, k] == (int)CubeType.WALL 
+        //                // && NeihtboursCount(i,j,k, CubeType.WALL) >= 3 
+        //                 && LampsCount(i,j,k, 5) < 1
+        //             ) 
+        //             { 
+        //                  lampPositions.Add(new Vector3(i,j,k));  
+        //             }
+        //         }        
     }
 
     void MakeBridge(int i_cut, int j_kut, int k_kut, int length, bool direction)
@@ -270,7 +293,7 @@ public class LevelController : MonoBehaviour
         {
             int ii = i_cut;
             for (int st = 0; st < length; st++)
-                if (correctIndex(ii + st, j_kut, k_kut))
+                if (isCorrectCluster(ii + st, j_kut, k_kut))
                 {
                     if (cubes[ii + st, j_kut, k_kut] == 1 && cubes[ii + st, j_kut, k_kut] == CubeType.OUT)
                         break;
@@ -278,7 +301,7 @@ public class LevelController : MonoBehaviour
                     cubes[ii + st, j_kut, k_kut] = CubeType.PLATFORM;
                 }
             for (int st = 0; st < length; st++)
-                if (correctIndex(ii - st, j_kut, k_kut))
+                if (isCorrectCluster(ii - st, j_kut, k_kut))
                 {
                     if (cubes[ii - st, j_kut, k_kut] == 1 && cubes[ii - st, j_kut, k_kut] == CubeType.OUT)
                         break;
@@ -290,14 +313,14 @@ public class LevelController : MonoBehaviour
         {
             int kk = (int)k_cut;
             for (int st = 0; st < length; st++) 
-                if (correctIndex(i_cut, j_kut, kk + st))
+                if (isCorrectCluster(i_cut, j_kut, kk + st))
                 {
                     if (cubes[i_cut, j_kut, kk + st] == 1 && cubes[i_cut, j_kut, kk + st] == 1)
                         break;
                     cubes[i_cut, j_kut, kk + st] = CubeType.PLATFORM;
                 }
             for (int st = 0; st < length; st++)
-                if (correctIndex(i_cut, j_kut, kk - st))
+                if (isCorrectCluster(i_cut, j_kut, kk - st))
                 {
                     if (cubes[i_cut, j_kut, kk - st] == 1 && cubes[i_cut, j_kut, kk - st] == CubeType.OUT)
                         break;
@@ -332,7 +355,7 @@ public class LevelController : MonoBehaviour
             for (int ii = (int)i_cut; ii < (int)i_cut + width; ii++)
             for (int jj = (int)j_cut; jj < (int)j_cut + height; jj++)
             for (int kk = (int)k_cut; kk < (int)k_cut + width ; kk++)
-                if (correctIndex(ii, jj, kk))
+                if (isCorrectCluster(ii, jj, kk))
                 {
                     cubes[ii, jj, kk] = isSmoothVoid ? (int)CubeType.VOID_SMOOTH : (int)CubeType.VOID; 
                 }
@@ -551,14 +574,15 @@ public class LevelController : MonoBehaviour
               
     } 
 
-    private void GenOrthoTunnels(Vector3 startPos, int maxWidth, int maxHeight, int tunnelsCount,  int tunnelMinLength, int tunnelMaxLength) 
+    private void GenOrthoTunnels(Vector3 startPos, int maxWidth, int maxHeight, int tunnelsCount,  int tunnelMinLength, int tunnelMaxLength, out Vector3 someMiddlePos) 
     {  
         i_cut = (int)startPos.x;
         j_cut = (int)startPos.y;
         k_cut = (int)startPos.z;  
         int max_cut = tunnelsCount;
         int temp_max_cut = max_cut;  
-        int countVertDir = 0; 
+        //int countVertDir = 0; 
+        someMiddlePos = new Vector3(i_cut, j_cut, k_cut);
         do
         { 
             OrthoDir orthoDir = (OrthoDir)Random.Range(-1, (int)OrthoDir.GO_DOWN + 1 ); 
@@ -576,15 +600,45 @@ public class LevelController : MonoBehaviour
             //      height++;
             //  }
 
-           if(orthoDir == OrthoDir.GO_DOWN  || orthoDir == OrthoDir.GO_UP) {
-               steps = Random.Range(0, 4);  
-               height = 1;
-               countVertDir++;
-               if(countVertDir >=2)
-                    continue;
-           }
-            ProrezKoridor(steps, dirM, width, height, false, false); 
-            max_cut --;   
+        //    if(orthoDir == OrthoDir.GO_DOWN  || orthoDir == OrthoDir.GO_UP) {
+        //        if(Random.Range(0,100) > 50)
+        //             continue;
+
+        //        steps = Random.Range(0, 4);  
+        //        width = height = 1;
+        //        countVertDir++;
+        //        if(countVertDir >=2)
+        //             continue;
+        //    }
+        //    else {
+        //        countVertDir = 0;
+        //    }
+
+
+            ProrezKoridor(steps, dirM, width, height, false, false);  
+
+            float saveI = i_cut;
+            float saveJ = j_cut;
+            float saveK = k_cut; 
+            dirM = GetDirMovementByOrthoDir(orthoDir);   
+            ProrezKoridor(steps/2, dirM, 1, 1, false, false);  
+            i_cut = saveI;
+            j_cut = saveJ;
+            k_cut = saveK;
+
+
+            max_cut --;  
+
+            if(max_cut == tunnelsCount/2) {
+                someMiddlePos =  new Vector3(i_cut, j_cut, k_cut); 
+            }
+
+
+            if(!isCorrectCluster(i_cut, j_cut, k_cut)) {
+                i_cut = someMiddlePos.x;
+                j_cut = someMiddlePos.y;
+                k_cut = someMiddlePos.z;
+            }
 
         } while (max_cut > 0);
               
@@ -607,8 +661,7 @@ public class LevelController : MonoBehaviour
 
         if (seed > 0)
             Random.InitState(seed);
-
-        _isLevelGenerating = true;
+ 
         Vector3 playerStartPosition;
 
         for (int i = 0; i < CUBES_I; i++)
@@ -620,18 +673,21 @@ public class LevelController : MonoBehaviour
         for (int j = (int)mapCenter.y;      j <= (int)mapCenter.y + 1;  j++)
         for (int k = (int)mapCenter.z - 2;  k <= (int)mapCenter.z + 2;  k++)
             cubes[i, j, k] = CubeType.VOID;
-
+ 
         i_cut = CUBES_I / 2;
         j_cut = CUBES_J / 2;
         k_cut = CUBES_K / 2;
 
         playerStartPosition = new Vector3(i_cut, j_cut, k_cut); 
  
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8);
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8);
-         GenOrthoTunnels(mapCenter, 3, 3, 100, 3, 8); 
+        Vector3 somePos = new Vector3();
+         GenOrthoTunnels(mapCenter, 3, 3, 100, 2, 8, out somePos);
+         GenOrthoTunnels(somePos, 3, 3, 100, 2, 8, out somePos);
+         GenOrthoTunnels(somePos, 3, 3, 100, 2, 8, out somePos);
 
-         GenCheckpoints(10);
+        // GenOrthoTunnels(somePos, 10, 10, 3, 2, 6, out somePos); 
+
+         GenCheckpoints(20);
 
        //GenBigCrossRooms(mapCenter);
 
@@ -724,10 +780,7 @@ public class LevelController : MonoBehaviour
 
         OptimizationLevel(); 
         
-        MakeLamps();
-
-        _isLevelGenerating = false;
-
+        MakeLamps(); 
 
         generated = true;
 
@@ -768,8 +821,7 @@ public class LevelController : MonoBehaviour
     {
         Debug.Log("BuildLevel");
 
-        buildProcessActive = true;
-        isLevelBuilding = true;
+        buildProcessActive = true; 
         _builded = false;
 
         int iterator = 0;
@@ -784,15 +836,15 @@ public class LevelController : MonoBehaviour
                     {
                         //Debug.Log("BuildL " + i + j + k);
 
-                     //   if (correctIndex(i, j + 1, k) && cubes[i, j + 1, k] != (int)CubeType.WALL
-                      //      && correctIndex(i, j - 1, k) && cubes[i, j - 1, k] != (int)CubeType.WALL)
-                     //   {
-                      //      _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab);
-                     //   }
-                    //    else
-                    //    {
-                            _cubeGO[i, j, k] = (GameObject)Instantiate(cubeWallPrefab);
-                     //   } 
+                       if (isCorrectCluster(i, j + 1, k) && isType(i, j + 1, k, (int)CubeType.VOID)
+                           && isCorrectCluster(i, j - 1, k) && isType(i, j - 1, k,(int)CubeType.VOID))
+                       {
+                           _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab);
+                       }
+                       else
+                       {
+                           _cubeGO[i, j, k] = (GameObject)Instantiate(cubeWallPrefab);
+                       } 
 
                     } 
 
@@ -816,8 +868,7 @@ public class LevelController : MonoBehaviour
                 }
 
             }
-            yield return null;
-            isLevelBuilding = false;
+            yield return null; 
             // yield break;
         }
 
@@ -827,12 +878,13 @@ public class LevelController : MonoBehaviour
         {
             _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z] = (GameObject)Instantiate(pointLightPrefab);
             _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].transform.position = lampPos;  
-            Color lightColor = new Color( 
-                  ((float)((int)(lampPos.x * lampPos.y)%100))/75.0f, 
-                  ((float)((int)(lampPos.y * lampPos.z)%100))/75.0f,  
-                  ((float)((int)(lampPos.z * lampPos.x)%100))/75.0f 
-                );
+            Color lightColor = LightManager.GetLampColorByPosition(lampPos);
+
+            if(lampPos == LevelController.mapCenter)
+                lightColor = new Color(1,1,1);
+
             _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].GetComponent<Light>().color = lightColor;
+            
 
            if(_lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z]) 
                 _lampGO[(int)lampPos.x, (int)lampPos.y,(int)lampPos.z].SetActive(false);
@@ -847,9 +899,20 @@ public class LevelController : MonoBehaviour
 
     }
 
+    void Awake()
+    {
+        lightManager = GameObject.Find("LightManager").GetComponent<LightManager>();
+    }
+
     void Start()
     {
         cubes = new int[CUBES_I, CUBES_J, CUBES_K];
+                // Set the fog color to be blue
+        RenderSettings.fogColor = Color.black;
+
+        // And enable fog
+        RenderSettings.fog = true;
+
     }
 
 
@@ -901,18 +964,30 @@ public class LevelController : MonoBehaviour
         if (_msek > 0.5f)
         {
             _msek = 0;
-            StartCoroutine(UpdateActualCubes());
+            StartCoroutine(UpdateActualCubes()); 
+            
         }
 
-
-        if (Input.GetMouseButtonDown(0))
+        if(Mathf.Abs(Input.GetAxis("Horizontal")) > 0)
         {
-
+            StartCoroutine(RealtimeUpdateActualCubes());
         }
 
+        
+       
+        if (generated && !SceneController.pause && Input.GetKeyDown(KeyCode.Escape))  
+        {
+            SceneController.Pause();
+        }
+  
+        if (generated && SceneController.pause && Input.GetKeyDown(KeyCode.Return))  
+        {
+            SceneController.Resume();
+        }
+  
+  
     }
-
-
+ 
 
     IEnumerator UpdateActualCubes()
     {
@@ -931,7 +1006,7 @@ public class LevelController : MonoBehaviour
                 {
                     for (int k = (int)pz - actualDistance -10; k < (int)pz + actualDistance +10; k++)
                     {
-                        if (!correctIndex(i, j, k))
+                        if (!isCorrectCluster(i, j, k))
                             continue;
 
                         if (_cubeGO[i, j, k])
@@ -939,10 +1014,18 @@ public class LevelController : MonoBehaviour
 
                             if (Mathf.Abs(i - px) < actualDistance
                                 && Mathf.Abs(j - py) < actualDistance
-                                && Mathf.Abs(k - pz) < actualDistance) 
-                                _cubeGO[i, j, k].SetActive(true);
-                            else
-                                _cubeGO[i, j, k].SetActive(false); 
+                                && Mathf.Abs(k - pz) < actualDistance)   
+                                   _cubeGO[i, j, k].SetActive(true);  
+                            else  
+                                 _cubeGO[i, j, k].SetActive(false); 
+
+                                // Vector3 cameraRelative = _player.transform.InverseTransformPoint(_cubeGO[i, j, k].transform.position); 
+                                // if (cameraRelative.z > -3) {
+                                //     _cubeGO[i, j, k].SetActive(true);
+                                // }
+                                // else
+                                //     _cubeGO[i, j, k].SetActive(false);  
+                                // }
 
                         }
  
@@ -966,10 +1049,68 @@ public class LevelController : MonoBehaviour
                 yield return null;
             }
            
+
+            lightManager.UpdateActual(playerPos, actualDistance);
+            yield return null;
  
 
         }
+
+        StartCoroutine(RealtimeUpdateActualCubes());
+        yield return null;
     }
+
+    IEnumerator RealtimeUpdateActualCubes()
+    {
+        if (_player != null && generated)
+        {
+            Vector3 playerPos = _player.transform.position;
+
+            int px = (int)playerPos.x;
+            int py = (int)playerPos.y;
+            int pz = (int)playerPos.z; 
+
+            for (int i = (int)px - actualDistance; i < (int)px + actualDistance; i++)
+            {
+                for (int j = (int)py - actualDistance ; j < (int)py + actualDistance; j++)
+                {
+                    for (int k = (int)pz - actualDistance; k < (int)pz + actualDistance; k++)
+                    {
+                        if (!isCorrectCluster(i, j, k))
+                            continue;
+
+                        if (_cubeGO[i, j, k])
+                        { 
+                            // _cubeGO[i, j, k].SetActive(true);
+
+                            if(_player != null) 
+                            {
+                                Vector3 cameraRelative = _player.transform.InverseTransformPoint(_cubeGO[i, j, k].transform.position); 
+                                if (cameraRelative.z > -6) {
+                                    //_cubeGO[i, j, k].SetActive(true);
+                                }
+                                else {
+                                    _cubeGO[i, j, k].SetActive(false); 
+                                }
+                            }
+
+                    
+                        }
+ 
+
+                    }
+
+                }
+                yield return null;
+            }
+           
+
+
+        }
+    }
+
+ 
+
 
 
     public void BindPlayerGameObject(GameObject playerGO) {

@@ -200,8 +200,8 @@ GameObject:
   - component: {fileID: 1893033959684510982}
   - component: {fileID: 9181636652688739634}
   - component: {fileID: 5989836814304625460}
-  - component: {fileID: 4939404428887628467}
   - component: {fileID: 1202890192867658527}
+  - component: {fileID: 6107050202849662323}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -261,8 +261,9 @@ MonoBehaviour:
   syncInterval: 0.1
   Health: 100
   Seed: 0
+  Score: 0
   Vector3Vars: []
-  fireballPrefab: {fileID: 3461811425147930063, guid: 1824deec1f639624c8c19c16fd0297c5,
+  fireballPrefab: {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4,
     type: 3}
   _head: {fileID: 7449839142903610140}
   gravity: -9.81
@@ -297,24 +298,6 @@ MonoBehaviour:
   interpolateRotation: 1
   interpolatePosition: 1
   syncScale: 1
---- !u!143 &4939404428887628467
-CharacterController:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7449839142147194480}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Height: 0.35
-  m_Radius: 0.125
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
-  m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &1202890192867658527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -339,6 +322,24 @@ MonoBehaviour:
   interpolatePosition: 1
   syncScale: 1
   target: {fileID: 7449839142903610141}
+--- !u!143 &6107050202849662323
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7449839142147194480}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Height: 0.35
+  m_Radius: 0.12
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7449839142595787272
 GameObject:
   m_ObjectHideFlags: 0

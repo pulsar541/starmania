@@ -4,25 +4,32 @@ using UnityEngine;
 
 public class SceneController : MonoBehaviour
 {
-    bool t = true;
+    public static bool pause = false;
     // Start is called before the first frame update
     void Start()
     {
         
     }
 
+    public static void Pause()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneController.pause = true;   
+    }
+
+    public static void Resume()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        SceneController.pause = false;   
+    }
+
+
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Mouse1))
-            t=!t;
-    
-        if (t) {
-            Cursor.lockState = CursorLockMode.None;
-        } 
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+  
+ 
     }
 }

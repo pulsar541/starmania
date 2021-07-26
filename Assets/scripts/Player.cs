@@ -18,10 +18,14 @@ public class Player : NetworkBehaviour
 
 
 
- 
-    public int Seed; 
+     public int Seed; 
     [SyncVar(hook = nameof(SyncSeed))] //задаем метод, который будет выполняться при синхронизации переменной
     int _SyncSeed;
+
+
+    public int Score;  
+    [SyncVar(hook = nameof(SyncScore))] //задаем метод, который будет выполняться при синхронизации переменной
+    int _SyncScore;
 
 
 
@@ -34,25 +38,22 @@ public class Player : NetworkBehaviour
 
     private CharacterController _charController;
 
-    [SerializeField] private GameObject fireballPrefab;
-
-
-    [SerializeField] private GameObject _head;
+    [SerializeField] private GameObject fireballPrefab = null;
+ 
+    [SerializeField] private GameObject _head = null;
     
+    LightManager lightManager;
 
     LevelController levelController;
 
     private ControllerColliderHit _contact;
-
-    private GameObject _fireball;
-    
+ 
     private Camera _fpsCamera;
 
     // private Rigidbody _rigidBody;
 
     public float gravity = 0; //-9.81f;
-
-    private float _distanceMove = 0.0f;
+ 
     public float speed = 2.0f;
 
     private float _vertSpeed;
@@ -74,9 +75,7 @@ public class Player : NetworkBehaviour
     private float _rotationY = 0;
 
     private bool _isMoveEnable = false;
-
-    int cubesCount = 0;
-
+ 
     bool wasFirstJump = true;
 
 
@@ -84,11 +83,16 @@ public class Player : NetworkBehaviour
 
     float _walkCounter = 0;
 
+    GameObject _lastFireballGo = null;
+
+    bool fireBallExpandMode = false;
+
     void Awake()
     { 
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
+        lightManager  = (LightManager)GameObject.Find("LightManager").GetComponent<LightManager>();
         _charController = GetComponent<CharacterController>();
-        _fpsCamera = (Camera)GameObject.Find("Camera").GetComponent<Camera>(); 
+       
     }
     void OnDestroy()
     { 
@@ -97,9 +101,10 @@ public class Player : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     { 
+         _fpsCamera = (Camera)GameObject.Find("Camera").GetComponent<Camera>(); 
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 0;  
-        Health = 100;  
+        ChangeHealthValue(100);
 
         DateTime uniDT =   DateTime.Now.ToUniversalTime(); 
         ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
@@ -111,6 +116,7 @@ public class Player : NetworkBehaviour
             levelController.BindPlayerGameObject(gameObject);
         }
 
+        ChangeScoreValue(0);
         
     }
  
@@ -122,14 +128,35 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     { 
+        if (!isLocalPlayer) 
+            return;
+
+        if(SceneController.pause)
+            return;
+      
         if (hasAuthority)
         {
+ 
+            if(!SceneController.pause) 
+            {
+                _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
+                _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
+                float delta = Input.GetAxis("Mouse X") * sensivityHor;
+                _rotationY = _charController.transform.localEulerAngles.y + delta;
+                transform.localEulerAngles = new Vector3(0/*_rotationX*/, _rotationY, 0);
+            }
+        
+            //lightManager.SetNonDestroy(transform.position);
 
-            _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
-            _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
-            float delta = Input.GetAxis("Mouse X") * sensivityHor;
-            _rotationY = _charController.transform.localEulerAngles.y + delta;
-            transform.localEulerAngles = new Vector3(0/*_rotationX*/, _rotationY, 0);
+
+
+            lightManager.TryInsertLight(transform.position + new Vector3(2,0,0), LightManager.GetLampColorByPosition(transform.position), 4);
+            lightManager.TryInsertLight(transform.position + new Vector3(-2,0,0), LightManager.GetLampColorByPosition(transform.position), 4);
+            lightManager.TryInsertLight(transform.position + new Vector3(0,0,2), LightManager.GetLampColorByPosition(transform.position), 4);
+            lightManager.TryInsertLight(transform.position + new Vector3(0,0,-2), LightManager.GetLampColorByPosition(transform.position), 4);
+            lightManager.TryInsertLight(transform.position + new Vector3(0,2,0), LightManager.GetLampColorByPosition(transform.position), 4);
+            lightManager.TryInsertLight(transform.position + new Vector3(0,-2,0), LightManager.GetLampColorByPosition(transform.position), 4);
+
 
 
             _head.transform.localEulerAngles = new Vector3(_rotationX,0,0);
@@ -147,6 +174,11 @@ public class Player : NetworkBehaviour
 
             float deltaX = Input.GetAxis("Horizontal") * speed * shiftMulSpeeed;
             float deltaZ = Input.GetAxis("Vertical") * speed * shiftMulSpeeed;
+            if(SceneController.pause) {
+                deltaX = 0;
+                deltaZ = 0;
+            }
+
             Vector3 movement = new Vector3(deltaX, 0, deltaZ);
 
             movement = Vector3.ClampMagnitude(movement, speed * shiftMulSpeeed);
@@ -183,7 +215,7 @@ public class Player : NetworkBehaviour
                 //                    ||  levelController.cubes[px-1, py, pz] == LevelController.CubeType.WALL && dist(new Vector3(px-1, py, pz), _charController.transform.position) <= 1.05f
                 //                    ||  levelController.cubes[px, py, pz-1] == LevelController.CubeType.WALL && dist(new Vector3(px, py, pz-1), _charController.transform.position) <= 1.05f)  ;
 
-                allowWallJump = levelController.WallsHorizontAroundCount(_charController.transform.position) >= 2;
+                /////allowWallJump = levelController.WallsHorizontAroundCount(_charController.transform.position) >= 2;
 
                 if(allowWallJump && Input.GetButtonDown("Jump")) 
                 {
@@ -200,6 +232,8 @@ public class Player : NetworkBehaviour
                 //         allowWallJump = false;
                 //     }      
                 // }   
+
+
                 else {
                     _vertSpeed += gravity * Time.deltaTime;
 
@@ -221,10 +255,7 @@ public class Player : NetworkBehaviour
             }
             if (hitCeiling)
                 _vertSpeed = 0;
-
-        
-
-
+ 
 
             if(gravity != 0)
                 movement.y = _vertSpeed;
@@ -232,8 +263,19 @@ public class Player : NetworkBehaviour
             movement *= Time.deltaTime;
 
             if (_isMoveEnable) {
-                _charController.Move(movement);
+                _charController.Move(movement); 
 
+                // if(movement.magnitude > 0) {
+                //     lightManager.InsertLight(transform.position);
+                // }
+            }
+
+
+            
+            if(_charController.transform.position.y < 0) {
+               _charController.transform.position = LevelController.mapCenter; 
+               _vertSpeed = 0;
+               movement.y = 0;
             }
 
 
@@ -243,26 +285,24 @@ public class Player : NetworkBehaviour
                        _walkCounter +=  speed * (shiftMulSpeeed > 1?1.5f:1.0f) * Time.deltaTime * 5.0f; 
 
                 }
-                _fpsCamera.transform.position += new Vector3(0,Math.Abs(Mathf.Sin(_walkCounter))*0.05f,0);  
-                _fpsCamera.transform.position +=  _fpsCamera.transform.TransformDirection(new Vector3(-Mathf.Cos(_walkCounter)*0.035f,0,0)); 
-               // Vector3 cameraOffset = _head.transform.TransformDirection(new Vector3(0,0,0.1f));
-               // _fpsCamera.transform.position += cameraOffset; 
+                _fpsCamera.transform.position += new Vector3(0,Math.Abs(Mathf.Sin(_walkCounter))*0.035f,0);  
+                _fpsCamera.transform.position +=  _fpsCamera.transform.TransformDirection(new Vector3(-Mathf.Cos(_walkCounter)*0.02f,0,0)); 
                 _fpsCamera.transform.rotation = _head.transform.rotation; 
+                _fpsCamera.transform.localEulerAngles += new Vector3((Mathf.Sin(_walkCounter*2))*0.1f ,0,0);  
             }
 
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
                 Vector3 spawnPos = transform.position;
-                float weaponSpeed = 3.0f;
+                float weaponSpeed = 5.0f;
                 Vector3 weaponMovement = new Vector3(0, 0, 1);
                 weaponMovement = _head.transform.TransformDirection(weaponMovement); //* weaponSpeed;
                 spawnPos += _charController.transform.TransformDirection(new Vector3(0.07f, -0.07f, 0));
-
-
-                if (isServer)
-                    SpawnFireball(netId, spawnPos, weaponMovement, weaponSpeed);
-                else
-                    CmdSpawnFireball(netId, spawnPos, weaponMovement, weaponSpeed);
+ 
+                if(isServer)
+                    Fire(netId, spawnPos, weaponMovement, weaponSpeed);
+                else 
+                    CmdFire(netId, spawnPos, weaponMovement, weaponSpeed);
             }
 
 
@@ -278,9 +318,14 @@ public class Player : NetworkBehaviour
                     }
             }
 
+
+            
+
+
         } // if hasAuthority
 
     }
+ 
 
     private void OnSpeedChanged(float value)
     {
@@ -294,21 +339,37 @@ public class Player : NetworkBehaviour
     }
 
 
-
     [Server]
-    public void SpawnFireball(uint owner, Vector3 startPos, Vector3 dir, float speed)
+    public void  Fire(uint owner, Vector3 startPos, Vector3 dir, float speed)
     {
-        GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
-        NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
-        fireballGo.GetComponent<Fireball>().Init(owner, startPos, dir, speed); //инициализируем поведение пули
+        if(fireBallExpandMode && _lastFireballGo != null) 
+        { 
+            _lastFireballGo.GetComponent<Fireball>().Expand();
+            fireBallExpandMode = false;
+        }
+        else 
+        {
+            GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
+            NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
+            fireballGo.GetComponent<Fireball>().Init(owner, startPos, dir, speed); //инициализируем поведение пули
+            _lastFireballGo = fireballGo;
+            fireBallExpandMode = true;
+        }
+ 
     }
+   
 
     [Command]
-    public void CmdSpawnFireball(uint owner, Vector3 startPos, Vector3 dir, float speed)
+    public void CmdFire(uint owner, Vector3 startPos, Vector3 dir, float speed)
     {
-        SpawnFireball(owner, startPos, dir, speed);
+        Fire(owner, startPos, dir, speed); 
     }
+
   
+
+
+
+  /////////////////////////////////////////////////////////////////////////////////////
     void SyncHealth(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
     {
         Health = newValue;
@@ -330,7 +391,7 @@ public class Player : NetworkBehaviour
     {
         ChangeHealthValue(newValue); //переходим к непосредственному изменению переменной
     }
-
+  /////////////////////////////////////////////////////////////////////////////////////
 
 
     [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
@@ -343,6 +404,36 @@ public class Player : NetworkBehaviour
     {
         Seed = newValue;
     }
+
+    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
+    public void CmdChangeSeed(int newValue) //обязательно ставим Cmd в начале названия метода
+    {
+        ChangeSeedValue(newValue); //переходим к непосредственному изменению переменной
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
+    public void ChangeScoreValue(int newValue)
+    {
+        _SyncScore = newValue; 
+    } 
+
+    void SyncScore(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
+    {
+        Score = newValue;
+    }
+
+    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
+    public void CmdChangeScore(int newValue) //обязательно ставим Cmd в начале названия метода
+    {
+        ChangeScoreValue(newValue); //переходим к непосредственному изменению переменной
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
     // public override void OnStartClient()
     // {
