@@ -148,15 +148,18 @@ public class Player : NetworkBehaviour
         
             //lightManager.SetNonDestroy(transform.position);
 
+            Color lightColor = LightManager.GetLampColorByPosition(transform.position);
 
 
-            lightManager.TryInsertLight(transform.position + new Vector3(2,0,0), LightManager.GetLampColorByPosition(transform.position), 4);
-            lightManager.TryInsertLight(transform.position + new Vector3(-2,0,0), LightManager.GetLampColorByPosition(transform.position), 4);
-            lightManager.TryInsertLight(transform.position + new Vector3(0,0,2), LightManager.GetLampColorByPosition(transform.position), 4);
-            lightManager.TryInsertLight(transform.position + new Vector3(0,0,-2), LightManager.GetLampColorByPosition(transform.position), 4);
-            lightManager.TryInsertLight(transform.position + new Vector3(0,2,0), LightManager.GetLampColorByPosition(transform.position), 4);
-            lightManager.TryInsertLight(transform.position + new Vector3(0,-2,0), LightManager.GetLampColorByPosition(transform.position), 4);
-
+           // if(isServer) 
+            {
+                lightManager.TryInsertLight(transform.position,lightColor, 4); 
+                lightManager.TryInsertLight(transform.position + transform.TransformDirection(new Vector3(0,0,3)), lightColor, 4);
+            }
+          //  else {
+          //      lightManager.CmdTryInsertLight(transform.position,lightColor, 4); 
+           //     lightManager.CmdTryInsertLight(transform.position + transform.TransformDirection(new Vector3(0,0,3)), lightColor, 4);                
+          //  }
 
 
             _head.transform.localEulerAngles = new Vector3(_rotationX,0,0);

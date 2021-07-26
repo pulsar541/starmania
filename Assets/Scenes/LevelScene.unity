@@ -230,8 +230,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de59207b3e0a864a89ea1bccd74c4cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 7449839142147194480, guid: 1d273a98604e6cc4ab6ace82037f5479,
-    type: 3}
   cubeWallPrefab: {fileID: 4179643412694862865, guid: 9e56c17dbc390a741903f4b7146e36e4,
     type: 3}
   cubeSinglePrefab: {fileID: 3275651368369614278, guid: 56c073db1c2f04f418a4adedbeee8154,
@@ -241,6 +239,8 @@ MonoBehaviour:
   pointLightPrefab: {fileID: 6397207810842780603, guid: 8894748dea8bc554c803f9cbb014a878,
     type: 3}
   checkPointPrefab: {fileID: 1907286219861385752, guid: c97e5b8d073f34646bc8e194f5418058,
+    type: 3}
+  spikesPrefab: {fileID: 4216154768866653329, guid: c7a11cd3a991d384d802b770b5a223ef,
     type: 3}
   actualDistance: 20
   generated: 0
@@ -458,6 +458,7 @@ MonoBehaviour:
   spawnPrefabs:
   - {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4, type: 3}
   - {fileID: 3461811425147930063, guid: 164d354b9a52fba4e9eba59ef0fcf1b0, type: 3}
+  - {fileID: 6397207810842780603, guid: 8894748dea8bc554c803f9cbb014a878, type: 3}
 --- !u!114 &1046163768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -651,7 +652,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1350591077}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 126.5, y: 71.600006, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -50}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

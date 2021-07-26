@@ -18,7 +18,9 @@ public class LevelController : MonoBehaviour
         public const int BEVEl_X = 4;  
         public const int BEVEl_XI = 5;
         public const int BEVEl_Z = 6;  
-        public const int BEVEl_ZI = 7;              
+        public const int BEVEl_ZI = 7;       
+
+        public const int SPIKES = 8;       
 
         public const int OUT = 1000;
     };
@@ -40,6 +42,7 @@ public class LevelController : MonoBehaviour
     [SerializeField] private GameObject pointLightPrefab = null;
 
     [SerializeField] private GameObject checkPointPrefab = null;
+    [SerializeField] private GameObject spikesPrefab = null;
 
     LightManager lightManager;
 
@@ -263,11 +266,35 @@ public class LevelController : MonoBehaviour
                 int n = Random.Range(0, voidsCount);
                 checkPoints.Add(voidUnderWallList[n] + new Vector3(0,0.5f,0));
                 voidUnderWallList.RemoveAt(n);
-            }
-
-
+            } 
         } 
     }
+
+
+    void GenSpikes(int count) 
+    {   
+        List<Vector3> voidOverWallList = new List<Vector3>();  
+        for (int i = 1; i < CUBES_I-1; i++)
+            for (int j = 1; j < CUBES_J-1; j++)
+                for (int k = 1; k < CUBES_K-1; k++) 
+                {
+                    if(cubes[i, j, k] == (int)CubeType.VOID) {
+                        if(cubes[i, j-1, k] == (int)CubeType.WALL && NeihtboursCount(i,j,k, CubeType.WALL) >=8) { 
+                            voidOverWallList.Add(new Vector3(i,j,k));   
+                        }      
+                    } 
+                }
+         for(int c = 0; c < count; c++){
+            if(voidOverWallList.Count  > 0) {
+                int n = Random.Range(0, voidOverWallList.Count);
+                cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.SPIKES; 
+                voidOverWallList.RemoveAt(n);
+            } 
+        }  
+    }
+
+
+    
 
     void MakeLamps() {
         lampPositions.Clear(); 
@@ -340,6 +367,7 @@ public class LevelController : MonoBehaviour
         int width = w;
         int height = h;
          
+        bool insertSpikes =  dir.y < 0 && Random.Range(0,100)> 50 && (i_cut != mapCenter.x || k_cut != mapCenter.z);
 
         for (int st = 0; st < length; st++)
         { 
@@ -358,6 +386,15 @@ public class LevelController : MonoBehaviour
                 if (isCorrectCluster(ii, jj, kk))
                 {
                     cubes[ii, jj, kk] = isSmoothVoid ? (int)CubeType.VOID_SMOOTH : (int)CubeType.VOID; 
+ 
+                    if(st == length-1 &&  insertSpikes )
+                    {
+                        if( isCorrectCluster(ii, jj-1, kk))
+                        {
+                            cubes[ii, jj-1, kk] = CubeType.SPIKES;
+                        }
+                    }
+
                 }
 
             // if(withBridges)
@@ -386,6 +423,9 @@ public class LevelController : MonoBehaviour
                 
             // } 
         }
+
+
+    
     }
 
 
@@ -689,6 +729,8 @@ public class LevelController : MonoBehaviour
 
          GenCheckpoints(20);
 
+         //GenSpikes(100);
+
        //GenBigCrossRooms(mapCenter);
 
         //GenBigDiagonalRooms(mapCenter);
@@ -778,8 +820,7 @@ public class LevelController : MonoBehaviour
         //     } while (max_cut > 0);
         // } 
 
-        OptimizationLevel(); 
-        
+        OptimizationLevel();  
         MakeLamps(); 
 
         generated = true;
@@ -852,6 +893,12 @@ public class LevelController : MonoBehaviour
                     {
                          _cubeGO[i, j, k] = (GameObject)Instantiate(platformPrefab); 
                     }
+
+                    if (cubes[i, j, k] == (int)CubeType.SPIKES)
+                    {
+                         _cubeGO[i, j, k] = (GameObject)Instantiate(spikesPrefab); 
+                    }
+
   
                      if( _cubeGO[i, j, k]) {
                         _cubeGO[i, j, k].transform.position = new Vector3(i, j, k)  ; 
