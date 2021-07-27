@@ -36,6 +36,8 @@ public class Player : NetworkBehaviour
     public List<Vector3> Vector3Vars;
 
 
+    private List<Vector3> pickupCheckpoints;
+
     private CharacterController _charController;
 
     [SerializeField] private GameObject fireballPrefab = null;
@@ -150,9 +152,27 @@ public class Player : NetworkBehaviour
 
 
          GameObject playerUI;
+ 
 
-
-
+        [Command]
+        public void CmdScoreUp(int newScore)
+        {
+            // Server say all clients, your score
+            RpcScoreUp(newScore);
+        }
+        
+        [ClientRpc]
+        public void RpcScoreUp(int newScore)
+        {
+            // You dont need do this action again, will be do it only your instance on all clients
+            if (!isLocalPlayer)
+            {
+                score = newScore;
+                //scorePlayer1.text = score.ToString();
+                UpdateData();
+            }
+    
+        }
 
     /////////////////////////////////////////
 
@@ -186,6 +206,7 @@ public class Player : NetworkBehaviour
             levelController.BindPlayerGameObject(gameObject);
         }
  
+        pickupCheckpoints = new List<Vector3>();
 
         ChangeScoreValue(0);        
     }
@@ -207,7 +228,7 @@ public class Player : NetworkBehaviour
             playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
 
             // Start generating updates
-            InvokeRepeating(nameof(UpdateData), 1, 1);
+            //InvokeRepeating(nameof(UpdateData), 1, 1);
         }
 
 
@@ -224,12 +245,8 @@ public class Player : NetworkBehaviour
         // This only runs on the server, called from OnStartServer via InvokeRepeating
         [ServerCallback]
         void UpdateData()
-        {
-          //  playerData = _SyncScore; //Random.Range(100, 1000);
-           // playerData += score; //Random.Range(100, 1000);
-            playerData =  Random.Range(100, 1000);
-
-           // Debug.Log("_SyncScore" + _SyncScore);
+        { 
+            playerData = score; 
         }
  
         public override void OnStartClient()
@@ -463,10 +480,15 @@ public class Player : NetworkBehaviour
              
             foreach (Vector3 checkpointPos in levelController.checkPoints)
             { 
-                if(dist( checkpointPos, _charController.transform.position) < 0.5f) {
-                    score ++;
-                    ChangeScoreValue(score);
-                   // UpdateData();
+                if(dist( checkpointPos, transform.position) < 0.5f && !pickupCheckpoints.Contains(checkpointPos)) {
+                    //score ++;
+                    //ChangeScoreValue(score);
+                    //UpdateData();
+                    pickupCheckpoints.Add(checkpointPos);
+
+                    score ++;   
+                    CmdScoreUp(score);
+                    UpdateData();
                 }
             }
 
