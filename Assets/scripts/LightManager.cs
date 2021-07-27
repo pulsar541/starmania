@@ -10,6 +10,12 @@ public class LightManager : MonoBehaviour
     private GameObject[,,] _lightTable = new GameObject[LevelController.CUBES_I, LevelController.CUBES_J, LevelController.CUBES_K];
     private bool[,,] _nonDestroyLightTable = new bool[LevelController.CUBES_I, LevelController.CUBES_J, LevelController.CUBES_K];  
 
+    LevelController levelController;
+     
+    void Awake()
+    {
+        levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
+    }
 
     void Start()
     {
@@ -90,16 +96,20 @@ public class LightManager : MonoBehaviour
         if(!isCorrectCluster((int)pos.x, (int)pos.y, (int)pos.z))
             return;
 
-        if (_lightTable[(int)pos.x, (int)pos.y, (int)pos.z] == null && NeihtboursCount(pos, noneNeightboursRadius) == 0)
+            
+
+        if (_lightTable[(int)pos.x, (int)pos.y, (int)pos.z] == null
+             && levelController.isType((int)pos.x, (int)pos.y, (int)pos.z, LevelController.CubeType.VOID)
+             && NeihtboursCount(pos, noneNeightboursRadius) == 0)
         {
-            _lightTable[(int)pos.x, (int)pos.y, (int)pos.z] = Instantiate(pointLightPrefab, pos, Quaternion.identity);
+            _lightTable[(int)pos.x, (int)pos.y, (int)pos.z] = Instantiate(pointLightPrefab, new Vector3((int)pos.x, (int)pos.y, (int)pos.z), Quaternion.identity);
             _lightTable[(int)pos.x, (int)pos.y, (int)pos.z].GetComponent<Light>().color = color;
         }
     }
 
     public void DestroyLight(Vector3 pos)
     {
-        if (_lightTable[(int)pos.x, (int)pos.y, (int)pos.z] != null )
+        if (_lightTable[(int)pos.x, (int)pos.y, (int)pos.z] != null)
         {
             if(!_nonDestroyLightTable[(int)pos.x, (int)pos.y, (int)pos.z] || NeihtboursCount(pos, 4) > 0) 
                 Destroy(_lightTable[(int)pos.x, (int)pos.y, (int)pos.z].gameObject); 

@@ -93,18 +93,13 @@ public class Player : NetworkBehaviour
         lightManager  = (LightManager)GameObject.Find("LightManager").GetComponent<LightManager>();
         _charController = GetComponent<CharacterController>();
        
-    }
-    void OnDestroy()
-    { 
-    }
-
-    // Start is called before the first frame update
+    } 
     void Start()
-    { 
+    {
          _fpsCamera = (Camera)GameObject.Find("Camera").GetComponent<Camera>(); 
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 0;  
-        ChangeHealthValue(100);
+        ChangeHealth(100);
 
         DateTime uniDT =   DateTime.Now.ToUniversalTime(); 
         ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
@@ -112,14 +107,19 @@ public class Player : NetworkBehaviour
         if(!levelController.generated) 
         {
             levelController.GenerateLevel(_SyncSeed); 
-            levelController.Build();
-            levelController.BindPlayerGameObject(gameObject);
+            levelController.Build(); 
+ 
         }
 
-        ChangeScoreValue(0);
-        
-    }
+        if(IsLocal) {
+            levelController.BindPlayerGameObject(gameObject);
+        }
  
+
+        ChangeScoreValue(0);        
+    }
+  
+    
     float dist(Vector3 a, Vector3 b)
     {
         return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2));
@@ -152,9 +152,10 @@ public class Player : NetworkBehaviour
 
 
            // if(isServer) 
-            {
-                lightManager.TryInsertLight(transform.position,lightColor, 4); 
-                lightManager.TryInsertLight(transform.position + transform.TransformDirection(new Vector3(0,0,3)), lightColor, 4);
+            {   
+                lightManager.TryInsertLight(transform.position, lightColor, 4); 
+                lightManager.TryInsertLight(transform.position + new Vector3(1,1,0), lightColor, 3);
+                lightManager.TryInsertLight(transform.position + new Vector3(-1,-1,0), lightColor, 3);
             }
           //  else {
           //      lightManager.CmdTryInsertLight(transform.position,lightColor, 4); 
@@ -379,7 +380,7 @@ public class Player : NetworkBehaviour
     }
 
     [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
-    public void ChangeHealthValue(int newValue)
+    public void ChangeHealth(int newValue)
     {
         _SyncHealth = newValue;
 
@@ -392,7 +393,7 @@ public class Player : NetworkBehaviour
     [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
     public void CmdChangeHealth(int newValue) //обязательно ставим Cmd в начале названия метода
     {
-        ChangeHealthValue(newValue); //переходим к непосредственному изменению переменной
+        ChangeHealth(newValue); //переходим к непосредственному изменению переменной
     }
   /////////////////////////////////////////////////////////////////////////////////////
 
