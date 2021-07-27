@@ -54,7 +54,7 @@ public class LevelController : MonoBehaviour
     private GameObject[,,] _lampGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];
 
 
-    private List<Vector3> checkPoints = new List<Vector3>();
+    public List<Vector3> checkPoints = new List<Vector3>();
 
 
     private List<GameObject> _actualCubeList = new List<GameObject>();
@@ -765,7 +765,7 @@ public class LevelController : MonoBehaviour
         //         cubes[(int)i, (int)j , (int)k] = CubeType.VOID;    
 
 
-        GenCheckpoints(20);
+        GenCheckpoints(100);
 
         //GenSpikes(100);
 

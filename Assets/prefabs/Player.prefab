@@ -265,6 +265,8 @@ MonoBehaviour:
   Vector3Vars: []
   fireballPrefab: {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4,
     type: 3}
+  playerUIPrefab: {fileID: 5152941909035078397, guid: 67d92954497a3dd47b60f7188f46a2de,
+    type: 3}
   _head: {fileID: 7449839142903610140}
   gravity: -9.81
   speed: 1.2
@@ -275,6 +277,11 @@ MonoBehaviour:
   sensivityVert: 9
   minVert: -90
   maxVert: 90
+  playerNumber: 0
+  playerData: 0
+  playerColor:
+    serializedVersion: 2
+    rgba: 4294967295
 --- !u!114 &5989836814304625460
 MonoBehaviour:
   m_ObjectHideFlags: 0

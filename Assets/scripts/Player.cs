@@ -1,5 +1,5 @@
 ﻿using Mirror;
-using System;
+//using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -39,6 +39,8 @@ public class Player : NetworkBehaviour
     private CharacterController _charController;
 
     [SerializeField] private GameObject fireballPrefab = null;
+
+    [SerializeField] private GameObject playerUIPrefab = null;
  
     [SerializeField] private GameObject _head = null;
     
@@ -87,6 +89,75 @@ public class Player : NetworkBehaviour
 
     bool fireBallExpandMode = false;
 
+
+    private int score = 0;
+
+
+    /////////////////////////////////////
+ 
+        public event System.Action<int> OnPlayerNumberChanged;
+        public event System.Action<Color32> OnPlayerColorChanged;
+        public event System.Action<int> OnPlayerDataChanged;
+        // Players List to manage playerNumber
+        internal static readonly List<Player> playersList = new List<Player>();
+
+        internal static void ResetPlayerNumbers()
+        {
+            int playerNumber = 0;
+            foreach (Player player in playersList)
+            {
+                player.playerNumber = playerNumber++;
+            }
+        }
+
+        [Header("SyncVars")]
+
+        /// <summary>
+        /// This is appended to the player name text, e.g. "Player 01"
+        /// </summary>
+        [SyncVar(hook = nameof(PlayerNumberChanged))]
+        public int playerNumber = 0;
+
+        /// <summary>
+        /// This is updated by UpdateData which is called from OnStartServer via InvokeRepeating
+        /// </summary>
+        [SyncVar(hook = nameof(PlayerDataChanged))]
+        public int playerData = 0;
+
+        /// <summary>
+        /// Random color for the playerData text, assigned in OnStartServer
+        /// </summary>
+        [SyncVar(hook = nameof(PlayerColorChanged))]
+        public Color32 playerColor = Color.white;
+
+        // This is called by the hook of playerNumber SyncVar above
+        void PlayerNumberChanged(int _, int newPlayerNumber)
+        {
+            OnPlayerNumberChanged?.Invoke(newPlayerNumber);
+        }
+
+        // This is called by the hook of playerData SyncVar above
+        void PlayerDataChanged(int _, int newPlayerData)
+        {
+            OnPlayerDataChanged?.Invoke(newPlayerData);
+        }
+
+        // This is called by the hook of playerColor SyncVar above
+        void PlayerColorChanged(Color32 _, Color32 newPlayerColor)
+        {
+            OnPlayerColorChanged?.Invoke(newPlayerColor);
+        }
+
+
+         GameObject playerUI;
+
+
+
+
+    /////////////////////////////////////////
+
+
+
     void Awake()
     { 
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
@@ -101,7 +172,7 @@ public class Player : NetworkBehaviour
         _vertSpeed = 0;  
         ChangeHealth(100);
 
-        DateTime uniDT =   DateTime.Now.ToUniversalTime(); 
+        System.DateTime uniDT =   System.DateTime.Now.ToUniversalTime(); 
         ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
        
         if(!levelController.generated) 
@@ -119,6 +190,75 @@ public class Player : NetworkBehaviour
         ChangeScoreValue(0);        
     }
   
+
+    
+    ////////////////////////////////////////////////////////
+
+
+        
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+
+            // Add this to the static Players List
+            playersList.Add(this);
+
+            // set the Player Color SyncVar
+            playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
+
+            // Start generating updates
+            InvokeRepeating(nameof(UpdateData), 1, 1);
+        }
+
+
+        /// <summary>
+        /// Invoked on the server when the object is unspawned
+        /// <para>Useful for saving object data in persistent storage</para>
+        /// </summary>
+        public override void OnStopServer()
+        {
+            CancelInvoke();
+            playersList.Remove(this);
+        }
+
+        // This only runs on the server, called from OnStartServer via InvokeRepeating
+        [ServerCallback]
+        void UpdateData()
+        {
+          //  playerData = _SyncScore; //Random.Range(100, 1000);
+           // playerData += score; //Random.Range(100, 1000);
+            playerData =  Random.Range(100, 1000);
+
+           // Debug.Log("_SyncScore" + _SyncScore);
+        }
+ 
+        public override void OnStartClient()
+        {
+            // Activate the main panel
+            ((NetMan)NetworkManager.singleton).mainPanel.gameObject.SetActive(true);
+ 
+ 
+            playerUI = Instantiate(playerUIPrefab, ((NetMan)NetworkManager.singleton).playersPanel); // Instantiate the player UI as child of the Players Panel
+ 
+            playerUI.GetComponent<PlayerUI>().SetPlayer(this, isLocalPlayer); // Set this player object in PlayerUI to wire up event handlers
+
+            // Invoke all event handlers with the current data
+            OnPlayerNumberChanged.Invoke(playerNumber);
+            OnPlayerColorChanged.Invoke(playerColor);
+            OnPlayerDataChanged.Invoke(playerData);
+        }
+        
+        public override void OnStopClient()
+        {
+            // Remove this player's UI object
+            Destroy(playerUI);
+
+            // Disable the main panel for local player
+            if (isLocalPlayer)
+                ((NetMan)NetworkManager.singleton).mainPanel.gameObject.SetActive(false);
+        }
+
+    ////////////////////////////////////////////////////////
     
     float dist(Vector3 a, Vector3 b)
     {
@@ -128,8 +268,8 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     { 
-        if (!isLocalPlayer) 
-            return;
+        //if (!isLocalPlayer) 
+        //    return;
 
         if(SceneController.pause)
             return;
@@ -289,7 +429,7 @@ public class Player : NetworkBehaviour
                        _walkCounter +=  speed * (shiftMulSpeeed > 1?1.5f:1.0f) * Time.deltaTime * 5.0f; 
 
                 }
-                _fpsCamera.transform.position += new Vector3(0,Math.Abs(Mathf.Sin(_walkCounter))*0.035f,0);  
+                _fpsCamera.transform.position += new Vector3(0,Mathf.Abs(Mathf.Sin(_walkCounter))*0.035f,0);  
                 _fpsCamera.transform.position +=  _fpsCamera.transform.TransformDirection(new Vector3(-Mathf.Cos(_walkCounter)*0.02f,0,0)); 
                 _fpsCamera.transform.rotation = _head.transform.rotation; 
                 _fpsCamera.transform.localEulerAngles += new Vector3((Mathf.Sin(_walkCounter*2))*0.1f ,0,0);  
@@ -315,6 +455,23 @@ public class Player : NetworkBehaviour
                  _isMoveEnable = true; 
             }
   
+
+
+
+
+            ///////////////////////////////////////////////////// 
+             
+            foreach (Vector3 checkpointPos in levelController.checkPoints)
+            { 
+                if(dist( checkpointPos, _charController.transform.position) < 0.5f) {
+                    score ++;
+                    ChangeScoreValue(score);
+                   // UpdateData();
+                }
+            }
+
+            //////////////////////////////////////
+
 
             if(IsLocal) {
                 foreach(Renderer r in this.gameObject.GetComponentsInChildren<Renderer>()) { 

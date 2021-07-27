@@ -5,6 +5,14 @@ using UnityEngine;
 
 public class NetMan : NetworkManager
 {
+
+
+        [Tooltip("Assign Main Panel so it can be turned on from Player:OnStartClient")]
+        public RectTransform mainPanel;
+
+        [Tooltip("Assign Players Panel for instantiating PlayerUI as child")]
+        public RectTransform playersPanel;
+
   //  bool playerSpawned; 
   //  NetworkConnection connection;
   //  bool playerConnected;
@@ -79,6 +87,7 @@ public class NetMan : NetworkManager
             // add player at correct spawn position 
             GameObject player = Instantiate(playerPrefab,  LevelController.mapCenter, Quaternion.identity);
             NetworkServer.AddPlayerForConnection(conn, player);
+            Player.ResetPlayerNumbers();
                
         }
 
@@ -87,7 +96,7 @@ public class NetMan : NetworkManager
             
             // call base functionality (actually destroys the player)
             base.OnServerDisconnect(conn);
-
+            Player.ResetPlayerNumbers();
             
         }
      
