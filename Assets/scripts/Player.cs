@@ -176,7 +176,7 @@ public class Player : NetworkBehaviour
 
     /////////////////////////////////////////
 
-
+    
 
     void Awake()
     { 
@@ -195,7 +195,7 @@ public class Player : NetworkBehaviour
         System.DateTime uniDT =   System.DateTime.Now.ToUniversalTime(); 
         ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
        
-        if(!levelController.generated) 
+        if(!LevelController.generated) 
         {
             levelController.GenerateLevel(_SyncSeed); 
             levelController.Build(); 

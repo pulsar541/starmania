@@ -55,6 +55,7 @@ public class LevelController : MonoBehaviour
 
 
     public List<Vector3> checkPoints = new List<Vector3>();
+    public List<GameObject> _checkPointsGO = new List<GameObject>();
 
 
     private List<GameObject> _actualCubeList = new List<GameObject>();
@@ -62,7 +63,7 @@ public class LevelController : MonoBehaviour
 
     Vector3 playerPos;
 
-    public bool generated = false;
+    public static bool generated = false;
 
     public bool buildProcessActive = false;
 
@@ -196,16 +197,26 @@ public class LevelController : MonoBehaviour
             for (int j = 0; j < CUBES_J; j++)
             {
                 for (int k = 0; k < CUBES_K; k++)
-                {
-                    if (cubes[i, j, k] != 0)
-                    {
-                        if (_cubeGO[i, j, k] != null)
-                            Destroy(_cubeGO[i, j, k]);
-                        cubes[i, j, k] = 0;
-                    }
+                { 
+                    cubes[i, j, k] = CubeType.WALL; 
+
+                    if (_cubeGO[i, j, k] != null)
+                        Destroy(_cubeGO[i, j, k]);
+
+ 
+                    if (_lampGO[i, j, k] != null) 
+                        Destroy(_lampGO[i, j, k]); 
+                     
+
                 }
             }
         }
+
+
+       foreach (GameObject checkpointGo in _checkPointsGO) 
+            Destroy(checkpointGo); 
+        
+       _checkPointsGO.Clear();
 
 
         generated = false;
@@ -978,9 +989,8 @@ public class LevelController : MonoBehaviour
         }
 
         foreach (Vector3 checkpointPos in checkPoints)
-        {
-            GameObject checkpoint = (GameObject)Instantiate(checkPointPrefab);
-            checkpoint.transform.position = checkpointPos;
+        {   
+            _checkPointsGO.Add((GameObject)Instantiate(checkPointPrefab, checkpointPos, Quaternion.identity));  
         }
 
     }
@@ -1099,7 +1109,7 @@ public class LevelController : MonoBehaviour
                         if (!isCorrectCluster(i, j, k))
                             continue;
 
-                        if (_cubeGO[i, j, k])
+                        if (_cubeGO[i, j, k] && _player)
                         {
 
                             if (Mathf.Abs(i - px) < actualDistance

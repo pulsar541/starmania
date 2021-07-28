@@ -13,6 +13,8 @@ public class NetMan : NetworkManager
         [Tooltip("Assign Players Panel for instantiating PlayerUI as child")]
         public RectTransform playersPanel;
 
+        LevelController levelController;
+
   //  bool playerSpawned; 
   //  NetworkConnection connection;
   //  bool playerConnected;
@@ -79,7 +81,11 @@ public class NetMan : NetworkManager
     //    playerSpawned = false;
     // }
 
-
+        public override void Awake()
+        {   
+            base.Awake();
+            levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
+        }
 
 
         public override void OnServerAddPlayer(NetworkConnection conn)
@@ -106,6 +112,7 @@ public class NetMan : NetworkManager
         {
            base.OnStartServer();
            SceneController.Resume();
+           levelController.Clear();
         }
  
         public override void OnStartClient()
