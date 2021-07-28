@@ -310,9 +310,10 @@ public class Player : NetworkBehaviour
 
            // if(isServer) 
             {   
-                lightManager.TryInsertLight(transform.position, lightColor, 4); 
-                lightManager.TryInsertLight(transform.position + new Vector3(1,1,0), lightColor, 3);
-                lightManager.TryInsertLight(transform.position + new Vector3(-1,-1,0), lightColor, 3);
+                lightManager.TryInsertLight(transform.position, lightColor, 4);
+                lightManager.TryInsertLight(transform.position + new Vector3(0,1,0), lightColor, 3); 
+                lightManager.TryInsertLight(transform.position + new Vector3(1,0,1), lightColor, 3);
+                lightManager.TryInsertLight(transform.position + new Vector3(-1,0,-1), lightColor, 3);
             }
           //  else {
           //      lightManager.CmdTryInsertLight(transform.position,lightColor, 4); 
@@ -477,15 +478,11 @@ public class Player : NetworkBehaviour
 
 
             ///////////////////////////////////////////////////// 
-             
-            foreach (Vector3 checkpointPos in levelController.checkPoints)
+            foreach (GameObject checkpointGo in levelController.checkPointsGO)  
             { 
-                if(dist( checkpointPos, transform.position) < 0.5f && !pickupCheckpoints.Contains(checkpointPos)) {
-                    //score ++;
-                    //ChangeScoreValue(score);
-                    //UpdateData();
-                    pickupCheckpoints.Add(checkpointPos);
-
+                if(dist( checkpointGo.transform.position, transform.position) < 0.5f && !pickupCheckpoints.Contains(checkpointGo.transform.position)) { 
+                    pickupCheckpoints.Add(checkpointGo.transform.position); 
+                    checkpointGo.GetComponent<Checkpoint>().SetPickup();
                     score ++;   
                     CmdScoreUp(score);
                     UpdateData();

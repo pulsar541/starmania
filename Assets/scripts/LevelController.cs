@@ -55,7 +55,7 @@ public class LevelController : MonoBehaviour
 
 
     public List<Vector3> checkPoints = new List<Vector3>();
-    public List<GameObject> _checkPointsGO = new List<GameObject>();
+    public List<GameObject> checkPointsGO = new List<GameObject>();
 
 
     private List<GameObject> _actualCubeList = new List<GameObject>();
@@ -213,10 +213,10 @@ public class LevelController : MonoBehaviour
         }
 
 
-       foreach (GameObject checkpointGo in _checkPointsGO) 
+       foreach (GameObject checkpointGo in checkPointsGO) 
             Destroy(checkpointGo); 
         
-       _checkPointsGO.Clear();
+       checkPointsGO.Clear();
 
 
         generated = false;
@@ -776,7 +776,7 @@ public class LevelController : MonoBehaviour
         //         cubes[(int)i, (int)j , (int)k] = CubeType.VOID;    
 
 
-        GenCheckpoints(100);
+        GenCheckpoints(15);
 
         //GenSpikes(100);
 
@@ -990,7 +990,7 @@ public class LevelController : MonoBehaviour
 
         foreach (Vector3 checkpointPos in checkPoints)
         {   
-            _checkPointsGO.Add((GameObject)Instantiate(checkPointPrefab, checkpointPos, Quaternion.identity));  
+            checkPointsGO.Add((GameObject)Instantiate(checkPointPrefab, checkpointPos, Quaternion.identity));  
         }
 
     }
