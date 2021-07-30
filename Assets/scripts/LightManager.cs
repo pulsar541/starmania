@@ -9,7 +9,8 @@ public class LightManager : MonoBehaviour
 
     private GameObject[,,] _lightTable = new GameObject[LevelController.CUBES_I, LevelController.CUBES_J, LevelController.CUBES_K];
     private bool[,,] _nonDestroyLightTable = new bool[LevelController.CUBES_I, LevelController.CUBES_J, LevelController.CUBES_K];  
-
+    private bool[,,] _activatedLightTable = new bool[LevelController.CUBES_I, LevelController.CUBES_J, LevelController.CUBES_K];  
+    
     LevelController levelController;
      
     void Awake()
@@ -27,6 +28,7 @@ public class LightManager : MonoBehaviour
                 if(_lightTable[i,j,k]) 
                     Destroy(_lightTable[i,j,k]);
                 _nonDestroyLightTable[i,j,k] = false;
+                _activatedLightTable [i,j,k] = false;
             }
     }
     bool isCorrectCluster(int i, int j, int k)
@@ -107,6 +109,29 @@ public class LightManager : MonoBehaviour
         }
     }
 
+    public void ActivateLight(Vector3 pos, int radius)
+    {
+ 
+        for (int i = (int)pos.x - radius; i < (int)pos.x + radius; i++)
+        {
+            for (int j = (int)pos.y - radius; j < (int)pos.y + radius; j++)
+            {
+                for (int k = (int)pos.z - radius; k < (int)pos.z + radius; k++)
+                {
+                    if (!isCorrectCluster(i, j, k))
+                        continue;
+
+                    if (_lightTable[i,j,k] != null)
+                    {
+                        _activatedLightTable[i,j,k] = true;
+                    }
+                }
+            }
+        }
+ 
+    }
+
+
     public void DestroyLight(Vector3 pos)
     {
         if (_lightTable[(int)pos.x, (int)pos.y, (int)pos.z] != null)
@@ -131,13 +156,15 @@ public class LightManager : MonoBehaviour
                     if (!isCorrectCluster(i, j, k))
                         continue;
 
-                    if (_lightTable[i, j, k])
-                    {
-
+                    if (_lightTable[i, j, k] && _activatedLightTable[i, j, k])
+                    { 
                         if (Mathf.Abs(i - px) < actualDistance
                             && Mathf.Abs(j - py) < actualDistance
-                            && Mathf.Abs(k - pz) < actualDistance) 
-                            _lightTable[i, j, k].SetActive(true);
+                            && Mathf.Abs(k - pz) < actualDistance)
+                            { 
+                                _lightTable[i, j, k].SetActive(true);
+                                
+                            }
                         else
                             _lightTable[i, j, k].SetActive(false); 
 

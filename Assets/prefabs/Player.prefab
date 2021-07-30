@@ -263,6 +263,8 @@ MonoBehaviour:
   Seed: 0
   Score: 0
   Vector3Vars: []
+  mapGenPrefab: {fileID: 3386281084037051879, guid: 60387cd9dbae3ab4d9288d06cb39cff3,
+    type: 3}
   fireballPrefab: {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4,
     type: 3}
   playerUIPrefab: {fileID: 5152941909035078397, guid: 67d92954497a3dd47b60f7188f46a2de,

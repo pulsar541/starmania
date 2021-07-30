@@ -163,7 +163,8 @@ MonoBehaviour:
   spikesPrefab: {fileID: 4216154768866653329, guid: c7a11cd3a991d384d802b770b5a223ef,
     type: 3}
   actualDistance: 20
-  generated: 0
+  checkPoints: []
+  checkPointsGO: []
   buildProcessActive: 0
 --- !u!4 &584682149
 Transform:
@@ -477,6 +478,7 @@ MonoBehaviour:
   spawnPrefabs:
   - {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4, type: 3}
   - {fileID: 3461811425147930063, guid: 164d354b9a52fba4e9eba59ef0fcf1b0, type: 3}
+  - {fileID: 3386281084037051879, guid: 60387cd9dbae3ab4d9288d06cb39cff3, type: 3}
   mainPanel: {fileID: 1283018502}
   playersPanel: {fileID: 1058929168}
 --- !u!114 &1046163768

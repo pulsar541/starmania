@@ -39,7 +39,7 @@ public class Player : NetworkBehaviour
     private List<Vector3> pickupCheckpoints;
 
     private CharacterController _charController;
-
+    [SerializeField] private GameObject mapGenPrefab = null;
     [SerializeField] private GameObject fireballPrefab = null;
 
     [SerializeField] private GameObject playerUIPrefab = null;
@@ -191,17 +191,14 @@ public class Player : NetworkBehaviour
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 0;  
         ChangeHealth(100);
-
-        System.DateTime uniDT =   System.DateTime.Now.ToUniversalTime(); 
-        ChangeSeedValue( uniDT.DayOfYear * (uniDT.Hour+1) * (uniDT.Minute+1) * (uniDT.Second+1)); 
-       
-        if(!LevelController.generated) 
-        {
-            levelController.GenerateLevel(_SyncSeed); 
-            levelController.Build(); 
  
-        }
+       
+        if(isServer)
+            MapGenerator(netId);
+        else 
+            CmdMapGenerator(netId);
 
+            
         if(IsLocal) {
             levelController.BindPlayerGameObject(gameObject);
         }
@@ -211,7 +208,8 @@ public class Player : NetworkBehaviour
         ChangeScoreValue(0);        
     }
   
-
+    
+   
     
     ////////////////////////////////////////////////////////
 
@@ -306,21 +304,9 @@ public class Player : NetworkBehaviour
             //lightManager.SetNonDestroy(transform.position);
 
             Color lightColor = LightManager.GetLampColorByPosition(transform.position);
-
-
-           // if(isServer) 
-            {   
-                lightManager.TryInsertLight(transform.position, lightColor, 4);
-                lightManager.TryInsertLight(transform.position + new Vector3(0,1,0), lightColor, 3); 
-                lightManager.TryInsertLight(transform.position + new Vector3(1,0,1), lightColor, 3);
-                lightManager.TryInsertLight(transform.position + new Vector3(-1,0,-1), lightColor, 3);
-            }
-          //  else {
-          //      lightManager.CmdTryInsertLight(transform.position,lightColor, 4); 
-           //     lightManager.CmdTryInsertLight(transform.position + transform.TransformDirection(new Vector3(0,0,3)), lightColor, 4);                
-          //  }
-
-
+ 
+             lightManager.ActivateLight(transform.position, 2);
+           
             _head.transform.localEulerAngles = new Vector3(_rotationX,0,0);
 
   
@@ -469,9 +455,9 @@ public class Player : NetworkBehaviour
 
 
 
-            if(levelController.Builded) {
-                 _isMoveEnable = true; 
-            }
+           //if(levelController.Builded) {
+                 _isMoveEnable = levelController.Builded; 
+           // }
   
 
 
@@ -545,6 +531,24 @@ public class Player : NetworkBehaviour
         Fire(owner, startPos, dir, speed); 
     }
 
+    //////////////////////////////////////////////////////////////////////////////////
+
+ 
+    [Server]
+    public void  MapGenerator(uint owner)
+    { 
+         Vector3 startPos =  new Vector3(Random.Range(1,256), Random.Range(1,256), Random.Range(1,256));
+         GameObject mapGeneratorGO = Instantiate(mapGenPrefab, startPos, Quaternion.identity);   
+         NetworkServer.Spawn(mapGeneratorGO);  
+    }
+   
+
+    [Command]
+    public void CmdMapGenerator(uint owner)
+    {
+        MapGenerator(owner); 
+    }
+
   
 
 
@@ -572,17 +576,18 @@ public class Player : NetworkBehaviour
         ChangeHealth(newValue); //переходим к непосредственному изменению переменной
     }
   /////////////////////////////////////////////////////////////////////////////////////
-
+ 
 
     [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
     public void ChangeSeedValue(int newValue)
     {
-        _SyncSeed = newValue; 
+        _SyncSeed = newValue;  
     } 
 
     void SyncSeed(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
     {
         Seed = newValue;
+
     }
 
     [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
@@ -613,70 +618,5 @@ public class Player : NetworkBehaviour
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-    // public override void OnStartClient()
-    // {
-    //     base.OnStartClient();
-    //     _SyncVector3Vars.Callback += SyncVector3Vars; //вместо hook, для SyncList используем подписку на Callback 
-    //     Vector3Vars = new List<Vector3>();//(_SyncVector3Vars.Count); //так как Callback действует только на изменение массива,  
-    //     for (int i = 0; i < _SyncVector3Vars.Count; i++) //а у нас на момент подключения уже могут быть какие-то данные в массиве, нам нужно эти данные внести в локальный массив
-    //     {
-    //         Vector3Vars.Add(_SyncVector3Vars[i]);
-    //     }
-
-
-    //     Debug.Log("OnStartClient. _SyncVector3Vars "  +_SyncVector3Vars.Count);
-
-
-    //     if(Vector3Vars.Count > 0) {
-    //        // for (int i = 0; i < Vector3Vars.Count; i++) 
-    //         levelController.ImportLevel(Vector3Vars);     
-    //         levelController.Build(); 
-    //     }
  
-    // }
-
-    // [Server]
-    // void ChangeVector3Vars(Vector3 newValue)
-    // {
-    //     _SyncVector3Vars.Add(newValue);
-    // }
-    //  [Command]
-    //  public void CmdChangeVector3Vars(Vector3 newValue)
-    //  {
-    //      ChangeVector3Vars(newValue);
-    //  }
-
-
-    // void SyncVector3Vars(SyncList<Vector3>.Operation op, int index, Vector3 oldItem, Vector3 newItem)
-    // {
-    //     switch (op)
-    //     {
-    //         case SyncList<Vector3>.Operation.OP_ADD:
-    //             {
-    //                 Vector3Vars.Add(newItem);
-    //                 break;
-    //             }
-    //         case SyncList<Vector3>.Operation.OP_CLEAR:
-    //             {
-    //                 // Vector3Vars.Clear();
-    //                 break;
-    //             }
-    //         case SyncList<Vector3>.Operation.OP_INSERT:
-    //             {
-
-    //                 break;
-    //             }
-    //         case SyncList<Vector3>.Operation.OP_REMOVEAT:
-    //             {
-
-    //                 break;
-    //             }
-    //         case SyncList<Vector3>.Operation.OP_SET:
-    //             {
-    //                 break;
-    //             }
-    //     }
-    // }
 }

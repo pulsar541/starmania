@@ -336,17 +336,19 @@ public class LevelController : MonoBehaviour
         lampPositions.Clear();
         lampPositions.Add(LevelController.mapCenter);
 
-        // for (int i = 0; i < CUBES_I; i++)
-        //     for (int j = 0; j < CUBES_J-1; j++)
-        //         for (int k = 0; k < CUBES_K; k++) {
-        //             if(cubes[i, j, k] == (int)CubeType.VOID  && cubes[i, j+1, k] == (int)CubeType.WALL 
-        //                // && NeihtboursCount(i,j,k, CubeType.WALL) >= 3 
-        //                 && LampsCount(i,j,k, 5) < 1
-        //             ) 
-        //             { 
-        //                  lampPositions.Add(new Vector3(i,j,k));  
-        //             }
-        //         }        
+        for (int i = 0; i < CUBES_I; i++)
+            for (int j = 0; j < CUBES_J-1; j++)
+                for (int k = 0; k < CUBES_K; k++) {
+                    if(cubes[i, j, k] == (int)CubeType.VOID  /*&& cubes[i, j+1, k] == (int)CubeType.WALL */
+                       // && NeihtboursCount(i,j,k, CubeType.WALL) >= 3 
+                      //  && LampsCount(i,j,k, 5) < 1
+                    ) 
+                    { 
+                        // lampPositions.Add(new Vector3(i,j,k));  
+                        Vector3 lightPos = new Vector3(i,j,k);
+                        lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 3);
+                    }
+                }        
     }
 
     void MakeBridge(int i_cut, int j_kut, int k_kut, int length, bool direction)
@@ -734,10 +736,10 @@ public class LevelController : MonoBehaviour
                         count++;
         return count;
     }
-
+  
     public Vector3 GenerateLevel(int seed)
     {
-
+        Clear();
         if (seed > 0)
             Random.InitState(seed);
 
@@ -1018,7 +1020,6 @@ public class LevelController : MonoBehaviour
     }
 
 
-
     public List<Vector3> GetCubesIJKs()
     {
         List<Vector3> list = new List<Vector3>();
@@ -1075,12 +1076,12 @@ public class LevelController : MonoBehaviour
 
 
 
-        if (generated && !SceneController.pause && Input.GetKeyDown(KeyCode.Escape))
+        if (!SceneController.pause && Input.GetKeyDown(KeyCode.Escape))
         {
             SceneController.Pause();
         }
 
-        if (generated && SceneController.pause && Input.GetKeyDown(KeyCode.Return))
+        if ( SceneController.pause && Input.GetKeyDown(KeyCode.Return))
         {
             SceneController.Resume();
         }
