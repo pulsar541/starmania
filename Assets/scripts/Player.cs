@@ -46,6 +46,9 @@ public class Player : NetworkBehaviour
  
     [SerializeField] private GameObject _head = null;
     
+    [SerializeField] private AudioSource soundSourceFire;
+    [SerializeField] private AudioClip fireSound;
+
     LightManager lightManager;
 
     LevelController levelController;
@@ -70,8 +73,8 @@ public class Player : NetworkBehaviour
 
 
     //public RotationAxes axes = RotationAxes.MouseXAndY;
-    public float sensivityHor = 9.0f;
-    public float sensivityVert = 9.0f;
+    public float sensivityHor = 5.0f;
+    public float sensivityVert = 5.0f;
     public float minVert = -90.0f;
     public float maxVert = 90.0f;
 
@@ -277,7 +280,7 @@ public class Player : NetworkBehaviour
     
     float dist(Vector3 a, Vector3 b)
     {
-        return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2));
+        return Mathf.Sqrt(Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2) + Mathf.Pow(a.z - b.z, 2));
     }
 
     // Update is called once per frame
@@ -447,6 +450,11 @@ public class Player : NetworkBehaviour
                 weaponMovement = _head.transform.TransformDirection(weaponMovement); //* weaponSpeed;
                 spawnPos += _charController.transform.TransformDirection(new Vector3(0.07f, -0.07f, 0));
  
+
+           
+                soundSourceFire.PlayOneShot(fireSound);
+
+
                 if(isServer)
                     Fire(netId, spawnPos, weaponMovement, weaponSpeed);
                 else 
@@ -520,6 +528,7 @@ public class Player : NetworkBehaviour
             fireballGo.GetComponent<Fireball>().Init(owner, startPos, dir, speed); //инициализируем поведение пули
             _lastFireballGo = fireballGo;
             fireBallExpandMode = true;
+            
         }
  
     }

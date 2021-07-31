@@ -5,9 +5,7 @@ using Mirror;
 
 public class MapGenerator : NetworkBehaviour
 { 
-    LevelController levelController;
-    GameObject player;
-
+    LevelController levelController; 
     public static bool levelAlreadyGenerated = false;
 
     void Awake()
@@ -19,13 +17,11 @@ public class MapGenerator : NetworkBehaviour
     {   
         if(levelAlreadyGenerated)
             return;
-
-        player  = GameObject.Find("Player(Clone)");
+ 
 
         int seed = (int)transform.position.x * (int)transform.position.y * (int)transform.position.z; 
         levelController.GenerateLevel(seed);
-        levelController.Build();
-        levelController.BindPlayerGameObject(player);
+        levelController.Build(); 
 
         levelAlreadyGenerated = true;
     } 

@@ -398,8 +398,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1046163765}
   - component: {fileID: 1046163767}
-  - component: {fileID: 1046163768}
   - component: {fileID: 1046163766}
+  - component: {fileID: 1046163768}
   m_Layer: 0
   m_Name: NetMan
   m_TagString: Untagged
