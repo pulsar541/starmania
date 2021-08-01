@@ -26,7 +26,7 @@ public class FireballEx : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.localScale -= new Vector3(0.01f * Time.deltaTime, 0.001f * Time.deltaTime, 0.01f * Time.deltaTime);
+        transform.localScale -= new Vector3(0.02f * Time.deltaTime, 0.001f * Time.deltaTime, 0.02f * Time.deltaTime);
  
         if(transform.localScale.x < 0.01f)
         {

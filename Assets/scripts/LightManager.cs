@@ -147,11 +147,11 @@ public class LightManager : MonoBehaviour
         int py = (int)pos.y;
         int pz = (int)pos.z; 
 
-        for (int i = (int)px - actualDistance -10; i < (int)px + actualDistance +10; i++)
+        for (int i = (int)px - actualDistance -5; i < (int)px + actualDistance +5; i++)
         {
-            for (int j = (int)py - actualDistance  -10; j < (int)py + actualDistance+10; j++)
+            for (int j = (int)py - actualDistance  -5; j < (int)py + actualDistance+5; j++)
             {
-                for (int k = (int)pz - actualDistance -10; k < (int)pz + actualDistance +10; k++)
+                for (int k = (int)pz - actualDistance -5; k < (int)pz + actualDistance +5; k++)
                 {
                     if (!isCorrectCluster(i, j, k))
                         continue;

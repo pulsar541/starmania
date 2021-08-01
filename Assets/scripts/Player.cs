@@ -12,13 +12,9 @@ public class Player : NetworkBehaviour
 
     //SyncList<Vector3> _SyncVector3Vars = new SyncList<Vector3>();
  
-    public int Health;  
-    [SyncVar(hook = nameof(SyncHealth))] //задаем метод, который будет выполняться при синхронизации переменной
-    int _SyncHealth;
-
-
-
-     public int Seed; 
+    public int Health = 100;  
+   
+    public int Seed; 
     [SyncVar(hook = nameof(SyncSeed))] //задаем метод, который будет выполняться при синхронизации переменной
     int _SyncSeed;
 
@@ -81,7 +77,7 @@ public class Player : NetworkBehaviour
     private float _rotationX = 0;
     private float _rotationY = 0;
 
-    private bool _isMoveEnable = false;
+    private bool _isMoveEnable = true;
  
     bool wasFirstJump = true;
 
@@ -193,8 +189,7 @@ public class Player : NetworkBehaviour
          _fpsCamera = (Camera)GameObject.Find("Camera").GetComponent<Camera>(); 
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 0;  
-        ChangeHealth(100);
- 
+        Health = 100;   
        
         if(isServer)
             MapGenerator(netId);
@@ -292,6 +287,8 @@ public class Player : NetworkBehaviour
         if(SceneController.pause)
             return;
       
+        _head.transform.localEulerAngles = new Vector3(_rotationX,0,0);
+        
         if (hasAuthority)
         {
  
@@ -299,7 +296,11 @@ public class Player : NetworkBehaviour
             {
                 _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
                 _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
+
                 float delta = Input.GetAxis("Mouse X") * sensivityHor;
+                if(Health <=0 )
+                    delta = 0;
+
                 _rotationY = _charController.transform.localEulerAngles.y + delta;
                 transform.localEulerAngles = new Vector3(0/*_rotationX*/, _rotationY, 0);
             }
@@ -308,7 +309,7 @@ public class Player : NetworkBehaviour
 
             Color lightColor = LightManager.GetLampColorByPosition(transform.position);
  
-             lightManager.ActivateLight(transform.position, 2);
+             lightManager.ActivateLight(transform.position, 4);
            
             _head.transform.localEulerAngles = new Vector3(_rotationX,0,0);
 
@@ -325,7 +326,8 @@ public class Player : NetworkBehaviour
 
             float deltaX = Input.GetAxis("Horizontal") * speed * shiftMulSpeeed;
             float deltaZ = Input.GetAxis("Vertical") * speed * shiftMulSpeeed;
-            if(SceneController.pause) {
+
+            if(SceneController.pause  ||  Health <= 0) {
                 deltaX = 0;
                 deltaZ = 0;
             }
@@ -347,7 +349,7 @@ public class Player : NetworkBehaviour
 
             if (_charController.isGrounded)
             {
-                if (Input.GetButtonDown("Jump"))
+                if (Input.GetButtonDown("Jump") && Health > 0)
                 {
                     _vertSpeed = jumpSpeed;
                     wasFirstJump = true;
@@ -368,7 +370,7 @@ public class Player : NetworkBehaviour
 
                 /////allowWallJump = levelController.WallsHorizontAroundCount(_charController.transform.position) >= 2;
 
-                if(allowWallJump && Input.GetButtonDown("Jump")) 
+                if(allowWallJump && Input.GetButtonDown("Jump") && Health > 0) 
                 {
                     _vertSpeed = jumpSpeed*0.75f;
                 } 
@@ -408,12 +410,24 @@ public class Player : NetworkBehaviour
                 _vertSpeed = 0;
  
 
+ 
+
+            if(Health <= 0)
+            {   _vertSpeed = 0;  
+                transform.localEulerAngles  = new Vector3(0, _rotationY, -25);
+            }
+   
+
             if(gravity != 0)
                 movement.y = _vertSpeed;
          
             movement *= Time.deltaTime;
 
-            if (_isMoveEnable) {
+
+
+            _isMoveEnable = levelController.Builded;
+
+            if (levelController.Builded) {
                 _charController.Move(movement); 
 
                 // if(movement.magnitude > 0) {
@@ -421,17 +435,29 @@ public class Player : NetworkBehaviour
                 // }
             }
 
+ 
 
-            
-            if(_charController.transform.position.y < 0) {
-               _charController.transform.position = LevelController.mapCenter; 
-               _vertSpeed = 0;
-               movement.y = 0;
+
+            if(transform.position.y < 0) 
+            { 
+                Health = 0;
             }
+
+            if(transform.position == LevelController.mapCenter)
+            {  
+                 Health = 100;
+                 _isMoveEnable = true; 
+            }
+
+
 
 
             if(_fpsCamera) {
                 _fpsCamera.transform.position = _head.transform.position;  
+
+                if(Health <= 0)
+                    _fpsCamera.transform.position +=  _fpsCamera.transform.TransformDirection(new Vector3(0,0,-0.5f)); 
+
                 if(_charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical"))) {
                        _walkCounter +=  speed * (shiftMulSpeeed > 1?1.5f:1.0f) * Time.deltaTime * 5.0f; 
 
@@ -444,32 +470,32 @@ public class Player : NetworkBehaviour
 
             if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                Vector3 spawnPos = transform.position;
-                float weaponSpeed = 5.0f;
-                Vector3 weaponMovement = new Vector3(0, 0, 1);
-                weaponMovement = _head.transform.TransformDirection(weaponMovement); //* weaponSpeed;
-                spawnPos += _charController.transform.TransformDirection(new Vector3(0.07f, -0.07f, 0));
- 
+                if(Health <= 0)
+                {    Health = 100; 
+                     transform.position = LevelController.mapCenter;  
+                    
+                     transform.localEulerAngles = new Vector3(0,0,0);
+                }
+                else {
+                    Vector3 spawnPos = transform.position;
+                    float weaponSpeed = 5.0f;
+                    Vector3 weaponMovement = new Vector3(0, 0, 1);
+                    weaponMovement = _head.transform.TransformDirection(weaponMovement); //* weaponSpeed;
+                    spawnPos += _charController.transform.TransformDirection(new Vector3(0.07f, -0.07f, 0));
+    
+                    soundSourceFire.PlayOneShot(fireSound);
+    
+                    if(isServer)
+                        Fire(netId, spawnPos, weaponMovement, weaponSpeed);
+                    else 
+                        CmdFire(netId, spawnPos, weaponMovement, weaponSpeed);                    
+                }
 
-           
-                soundSourceFire.PlayOneShot(fireSound);
 
-
-                if(isServer)
-                    Fire(netId, spawnPos, weaponMovement, weaponSpeed);
-                else 
-                    CmdFire(netId, spawnPos, weaponMovement, weaponSpeed);
+                    
             }
 
-
-
-           //if(levelController.Builded) {
-                 _isMoveEnable = levelController.Builded; 
-           // }
-  
-
-
-
+ 
 
             ///////////////////////////////////////////////////// 
             foreach (GameObject checkpointGo in levelController.checkPointsGO)  
@@ -489,12 +515,15 @@ public class Player : NetworkBehaviour
             if(IsLocal) {
                 foreach(Renderer r in this.gameObject.GetComponentsInChildren<Renderer>()) { 
                     r.enabled = false; 
-                    }
+                    if(Health <= 0)
+                        r.enabled = true;
+                }
+              
+
             }
 
 
-            
-
+   
 
         } // if hasAuthority
 
@@ -506,12 +535,7 @@ public class Player : NetworkBehaviour
         speed = baseSpeed * value;
     }
 
-
-    public void SetReady()
-    {
-        _isMoveEnable = true;
-    }
-
+ 
 
     [Server]
     public void  Fire(uint owner, Vector3 startPos, Vector3 dir, float speed)
@@ -557,34 +581,7 @@ public class Player : NetworkBehaviour
     {
         MapGenerator(owner); 
     }
-
-  
-
-
-
-  /////////////////////////////////////////////////////////////////////////////////////
-    void SyncHealth(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
-    {
-        Health = newValue;
-    }
-
-    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
-    public void ChangeHealth(int newValue)
-    {
-        _SyncHealth = newValue;
-
-        if (_SyncHealth <= 0)
-        {
-            NetworkServer.Destroy(gameObject);
-        }
-    } 
-
-    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
-    public void CmdChangeHealth(int newValue) //обязательно ставим Cmd в начале названия метода
-    {
-        ChangeHealth(newValue); //переходим к непосредственному изменению переменной
-    }
-  /////////////////////////////////////////////////////////////////////////////////////
+ 
  
 
     [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере

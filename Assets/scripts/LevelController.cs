@@ -329,7 +329,38 @@ public class LevelController : MonoBehaviour
     }
 
 
+    void GenBigRooms(int count)
+    {
+        List<Vector3> voidOverWallList = new List<Vector3>();
 
+      //   voidOverWallList.Add(LevelController.mapCenter);
+
+        for (int i = 1; i < CUBES_I - 1; i++)
+            for (int j = 1; j < CUBES_J - 1; j++)
+                for (int k = 1; k < CUBES_K - 1; k++)
+                {
+                    if (cubes[i, j, k] == (int)CubeType.VOID)
+                    {
+                          voidOverWallList.Add(new Vector3(i, j, k));
+                    }
+                }
+
+ 
+                Vector3 somePos = new Vector3();
+               // GenOrthoTunnels(voidOverWallList[0], 25,25,1,1,1,out somePos);
+              //  voidOverWallList.RemoveAt(0);
+
+        for (int c = 0; c < count; c++)
+        {
+            if (voidOverWallList.Count > 0)
+            {
+                int n = Random.Range(0, voidOverWallList.Count);
+               
+                GenOrthoTunnels(voidOverWallList[n], 20,20,1,1,1,out somePos);
+                voidOverWallList.RemoveAt(n);
+            }
+        }
+    }
 
     void MakeLamps()
     {
@@ -346,7 +377,7 @@ public class LevelController : MonoBehaviour
                     { 
                         // lampPositions.Add(new Vector3(i,j,k));  
                         Vector3 lightPos = new Vector3(i,j,k);
-                        lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 3);
+                        lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 4);
                     }
                 }        
     }
@@ -405,7 +436,13 @@ public class LevelController : MonoBehaviour
         int width = w;
         int height = h;
 
+        if(new Vector3(i_cut, j_cut, k_cut) == LevelController.mapCenter && dir.y != 0) 
+                return;
+                
+
         bool insertSpikes = dir.y < 0 && Random.Range(0, 100) > 50 && (i_cut != mapCenter.x || k_cut != mapCenter.z);
+
+        
 
         for (int st = 0; st < length; st++)
         {
@@ -431,9 +468,12 @@ public class LevelController : MonoBehaviour
                                 {
                                     cubes[ii, jj - 1, kk] = CubeType.SPIKES;
                                 }
-                            }
-
+                            } 
+ 
                         }
+
+
+
 
             // if(withBridges)
             //     for (int jj = j_cut - height / 2; jj <= j_cut + height/2; jj++)
@@ -671,6 +711,8 @@ public class LevelController : MonoBehaviour
             int height = Random.Range(1, maxHeight);
 
 
+
+
             //  if(orthoDir == OrthoDir.GO_DOWN  || orthoDir == OrthoDir.GO_UP) {
             //      dirM = new Vector3(Random.Range(-1.0f, 1.0f),Random.Range(-1f, 1.0f), Random.Range(-1.0f, 1.0f));
             //      steps = Random.Range(1, 4); 
@@ -692,6 +734,7 @@ public class LevelController : MonoBehaviour
             //        countVertDir = 0;
             //    }
 
+       
 
             ProrezKoridor(steps, dirM, width, height, false, false);
 
@@ -762,14 +805,17 @@ public class LevelController : MonoBehaviour
         playerStartPosition = new Vector3(i_cut, j_cut, k_cut);
 
         Vector3 somePos = new Vector3();
+ 
 
 
 
+        GenOrthoTunnels(mapCenter, 3, 3, 200, 2, 8, out somePos);
+        GenOrthoTunnels(somePos, 3, 3, 200, 2, 7, out somePos);
+        GenOrthoTunnels(somePos, 3, 3, 200, 2, 8, out somePos);
+ 
+      //  GenBigRooms(3);
 
-        GenOrthoTunnels(mapCenter, 3, 3, 100, 2, 8, out somePos);
-        GenOrthoTunnels(somePos, 3, 3, 100, 2, 8, out somePos);
-        GenOrthoTunnels(somePos, 3, 3, 100, 2, 8, out somePos);
-
+  //      GenOrthoTunnels(new Vector3(Random.Range), 25, 25, 1, 1, 1, out somePos);
 
 
         //  for (int i = 0; i < CUBES_I; i++)
@@ -778,7 +824,7 @@ public class LevelController : MonoBehaviour
         //         cubes[(int)i, (int)j , (int)k] = CubeType.VOID;    
 
 
-        GenCheckpoints(15);
+        GenCheckpoints(10);
 
         //GenSpikes(100);
 
@@ -918,18 +964,34 @@ public class LevelController : MonoBehaviour
 
         int iterator = 0;
 
+        //for(int delta = 0; delta < 50; delta++) 
+        {
         for (int i = 0; i < CUBES_I; i++)
         {
             for (int j = 0; j < CUBES_J; j++)
             {
                 for (int k = 0; k < CUBES_K; k++)
                 {
+
+                    // if(i < mapCenter.x - delta || i > mapCenter.x + delta ||
+                    //    j < mapCenter.y - delta || j > mapCenter.y + delta ||
+                    //    k < mapCenter.z - delta || k > mapCenter.z + delta  
+                    //     )
+                    //     continue;
+
+                        
+
+                    // if(i > mapCenter.x - delta && i < mapCenter.x + delta &&
+                    //    j > mapCenter.y - delta && j < mapCenter.y + delta &&
+                    //    k > mapCenter.z - delta && k < mapCenter.z + delta  
+                    //     )
+                    //     continue;
+
                     if (cubes[i, j, k] == (int)CubeType.WALL)
                     {
                         //Debug.Log("BuildL " + i + j + k);
 
-                        if (isCorrectCluster(i, j + 1, k) && isType(i, j + 1, k, (int)CubeType.VOID)
-                            && isCorrectCluster(i, j - 1, k) && isType(i, j - 1, k, (int)CubeType.VOID))
+                        if ( i == mapCenter.x /*&& j > mapCenter.y-1 && j < mapCenter.y+1*/ && k == mapCenter.z)
                         {
                             _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab);
                         }
@@ -954,6 +1016,9 @@ public class LevelController : MonoBehaviour
                     if (_cubeGO[i, j, k])
                     {
                         _cubeGO[i, j, k].transform.position = new Vector3(i, j, k);
+                        if(cubes[i, j, k] == (int)CubeType.SPIKES) {
+                            _cubeGO[i, j, k].transform.position = new Vector3(i, j - 0.55f, k);
+                        }
                     }
 
                     if (_cubeGO[i, j, k])
@@ -970,8 +1035,8 @@ public class LevelController : MonoBehaviour
             yield return null;
             // yield break;
         }
-
-
+        
+        }
 
         foreach (Vector3 lampPos in lampPositions)
         {
@@ -1074,6 +1139,7 @@ public class LevelController : MonoBehaviour
             StartCoroutine(UpdateActualCubes());
 
 
+        FastUpdateNearestActualCubes();
 
 
         if (!SceneController.pause && Input.GetKeyDown(KeyCode.Escape))
@@ -1101,11 +1167,11 @@ public class LevelController : MonoBehaviour
             int pz = (int)playerPos.z;
 
 
-            for (int i = (int)px - actualDistance - 10; i < (int)px + actualDistance + 10; i++)
+            for (int i = (int)px - actualDistance - 5; i < (int)px + actualDistance + 5; i++)
             {
-                for (int j = (int)py - actualDistance - 10; j < (int)py + actualDistance + 10; j++)
+                for (int j = (int)py - actualDistance - 5; j < (int)py + actualDistance + 5; j++)
                 {
-                    for (int k = (int)pz - actualDistance - 10; k < (int)pz + actualDistance + 10; k++)
+                    for (int k = (int)pz - actualDistance - 5; k < (int)pz + actualDistance + 5; k++)
                     {
                         if (!isCorrectCluster(i, j, k))
                             continue;
@@ -1172,6 +1238,44 @@ public class LevelController : MonoBehaviour
 
 
     }
+
+
+
+
+
+    void FastUpdateNearestActualCubes()
+    {
+        if (_player != null && generated)
+        {
+            Vector3 playerPos = _player.transform.position;
+
+            int px = (int)playerPos.x;
+            int py = (int)playerPos.y;
+            int pz = (int)playerPos.z; 
+
+            for (int i = (int)px - 1; i <= (int)px + 1; i++)
+            {
+                for (int j = (int)py - 1; j <= (int)py + 1; j++)
+                {
+                    for (int k = (int)pz - 1; k <= (int)pz + 1; k++)
+                    {
+                        if (!isCorrectCluster(i, j, k))
+                            continue;
+
+                        if (_cubeGO[i, j, k]) 
+                            _cubeGO[i, j, k].SetActive(true); 
+
+                        if (_lampGO[i, j, k]) 
+                            _lampGO[i, j, k].SetActive(true);  
+
+                    } 
+                } 
+            }  
+        }  
+    }
+
+
+
 
 
 

@@ -162,7 +162,7 @@ MonoBehaviour:
     type: 3}
   spikesPrefab: {fileID: 4216154768866653329, guid: c7a11cd3a991d384d802b770b5a223ef,
     type: 3}
-  actualDistance: 20
+  actualDistance: 15
   checkPoints: []
   checkPointsGO: []
   buildProcessActive: 0
