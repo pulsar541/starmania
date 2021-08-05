@@ -19,7 +19,7 @@ public class MapGenerator : NetworkBehaviour
             return;
  
 
-        int seed = (int)transform.position.x * (int)transform.position.y * (int)transform.position.z; 
+        int seed = (int)transform.position.x  +  100 * ((int)transform.position.y  +  (100 * (int)transform.position.z)) ; 
         levelController.GenerateLevel(seed);
         levelController.Build(); 
 

@@ -163,6 +163,23 @@ public class LightManager : MonoBehaviour
                             && Mathf.Abs(k - pz) < actualDistance)
                             { 
                                 _lightTable[i, j, k].SetActive(true);
+
+ 
+                                Light light = _lightTable[i, j, k].GetComponent<Light>(); 
+                                if(light != null) {
+
+                                        //    if (Mathf.Abs(i - px) < actualDistance/2
+                                        //     && Mathf.Abs(j - py) < actualDistance/2
+                                        //     && Mathf.Abs(k - pz) < actualDistance/2)
+                                        //     {  
+                                        //     light.shadows = LightShadows.Hard;  
+                                        //     }
+                                        //     else
+                                        //     light.shadows = LightShadows.None;  
+
+                                 }
+
+
                                 
                             }
                         else

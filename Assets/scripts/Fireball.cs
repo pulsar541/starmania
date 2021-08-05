@@ -12,27 +12,48 @@ public class Fireball : NetworkBehaviour
     uint owner;
     bool inited;
  
-    Vector3 dir;
-    Vector3 start;
-    float _speed = 0;
+    Vector3 _movement;
+    Vector3 start; 
 
     Vector3 oldPos;
     BoxCollider boxColl;
     Color expandLightColor;
+
+
+    int _type = 0;
+   
+ 
+     
     public void Awake()
     {
         boxColl = GetComponent<BoxCollider>(); 
         boxColl.enabled = false;
     }
-    public void Init(uint owner, Vector3 start, Vector3 dir, float speed)
+    public void Init(uint owner, Vector3 start, Vector3 movement, int type = 0)
     {
         this.owner = owner; //кто сделал выстрел
-        this.dir = dir; //куда должна лететь пуля
-        oldPos = transform.position = this.start = start;
-        this._speed = speed;
+        this._movement = movement; //куда должна лететь пуля
+        oldPos = transform.position = this.start = start; 
         inited = true;
 
-        expandLightColor = LightManager.GetLampColorByPosition(start) ;    
+        _type = type;
+
+        expandLightColor = LightManager.GetLampColorByPosition(start) ;  
+
+        if(_type == 1) 
+        {
+            foreach(Transform child in transform) { 
+                Light light = child.GetComponent<Light>(); 
+                if(light != null) {
+                    light.color = Color.yellow;   
+                }
+        
+            }
+
+            Material mat = GetComponent<Renderer>().material;
+            mat.SetColor("_EmissionColor", Color.yellow);
+        }   
+
     }
 
     
@@ -56,8 +77,7 @@ public class Fireball : NetworkBehaviour
     public void MakeExpand()
     {    
         transform.localScale  = new Vector3(0.2f, 0.05f, 0.2f);   
-        boxColl.enabled = true;  
-        _speed = 0; 
+        boxColl.enabled = true;   
 
  
         foreach(Transform child in transform) { 
@@ -103,12 +123,14 @@ public class Fireball : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
+         //lightManagerGO.ActivateLight(transform.position, 3);
+
         if ( inited && isServer )
         {
-            transform.Translate(dir.normalized * _speed * Time.deltaTime);
+            transform.Translate(_movement * Time.deltaTime);
            // Vector3 lpos = new Vector3((int)transform.position.x, (int)transform.position.y,(int)transform.position.z);
            // lightManagerGO.GetComponent<LightManager>().InsertLight(lpos, expandLightColor);
-             
+ 
             foreach (var item in Physics.OverlapSphere(transform.position, transform.localScale.x))
             {
                 Player player = item.GetComponent<Player>();
@@ -120,19 +142,25 @@ public class Fireball : NetworkBehaviour
                        // NetworkServer.Destroy(gameObject);  
                     }
                 } 
-            }
 
-            foreach (var item in Physics.OverlapBox(transform.position, new Vector3(0,0,0), Quaternion.identity))
-            { 
-                Cube cube = item.GetComponent<Cube>();
-                if(cube) {
-                    NetworkServer.Destroy(gameObject);    
-                    //NetworkServer.Destroy(cube.gameObject);
+                if(_type == 1)
+                {
+                    Enemy enemy = item.GetComponent<Enemy>();
+                    if (enemy)
+                    {
+                        if (enemy.netId != owner)
+                        {
+                            if(isServer)
+                                enemy.ChangeHealth(enemy.Health - 5); 
+                            else  
+                                enemy.CmdChangeHealth(enemy.Health - 5);  
 
-                    //      Expand(); 
-
+                            NetworkServer.Destroy(gameObject);            
+                        }
+                    } 
                 }
-            } 
+
+            }
 
             foreach (var item in Physics.OverlapBox(transform.position, transform.localScale/2))
             {
@@ -148,6 +176,27 @@ public class Fireball : NetworkBehaviour
                 } 
             }
 
+            foreach (var item in Physics.OverlapBox(transform.position, transform.localScale/2, Quaternion.identity))
+            { 
+                Cube cube = item.GetComponent<Cube>();
+                if(cube) { 
+                    if(_type == 0)
+                        Expand(); 
+
+                }
+
+            } 
+
+             foreach (var item in Physics.OverlapSphere(transform.position, transform.localScale.x))
+             { 
+                Fireball fireball = item.GetComponent<Fireball>();
+                if (fireball && fireball.netId != owner)
+                {
+                    if(_type == 0)
+                        Expand(); 
+                }
+             }
+
             if (Vector3.Distance(transform.position, start) > 50)  
             {
                 NetworkServer.Destroy(gameObject); 
@@ -156,7 +205,12 @@ public class Fireball : NetworkBehaviour
         }   
     }
 
+    // void FixedUpdate()
+    // {
+    //     if(_type == 1) 
+    //     {
 
-    
+    //     }   
+    // }
   
 }
