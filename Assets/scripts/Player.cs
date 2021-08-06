@@ -212,6 +212,8 @@ public class Player : NetworkBehaviour
         pickupCheckpoints = new List<Vector3>();
 
         ChangeScoreValue(0);
+
+        
     }
 
 
@@ -229,12 +231,23 @@ public class Player : NetworkBehaviour
         playersList.Add(this);
 
         // set the Player Color SyncVar
-        playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
-
+        //playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
+         playerColor = new Color(Random.Range(0.0f,1.0f), Random.Range(0.0f,1.0f), Random.Range(0.0f,1.0f));
         // Start generating updates
         //InvokeRepeating(nameof(UpdateData), 1, 1);
 
         ReSpawn(LevelController.mapCenter);
+
+
+
+        foreach(Transform child in transform) { 
+            Renderer ren = child.GetComponent<Renderer>(); 
+            if(ren != null) { 
+                ren.material.color = playerColor;
+                break;
+            }
+        }
+     
     }
 
 
@@ -270,6 +283,20 @@ public class Player : NetworkBehaviour
         OnPlayerDataChanged.Invoke(playerData);
 
         ReSpawn(LevelController.mapCenter);
+
+       // RenderSettings.ambientLight = playerColor;
+
+
+        foreach(Transform child in transform) { 
+            Renderer ren = child.GetComponent<Renderer>(); 
+            if(ren != null) { 
+                ren.material.color = playerColor;
+                break;
+            }
+        }
+     
+ 
+
     }
 
     public override void OnStopClient()
@@ -535,7 +562,7 @@ public class Player : NetworkBehaviour
                 if ((playerNumber % 2) == 0)
                 { 
                     Vector3 pos = new Vector3(px,py,pz);
-                    Vector3 spawnPos = transform.position +  transform.TransformDirection(new Vector3(0, 0, 0.65f));  
+                    Vector3 spawnPos = transform.position +  transform.TransformDirection(new Vector3(0, 0, 0.7f));  
 
  
                     if(!LevelController.control.HasCable(spawnPos) &&  LevelController.control.isType(pos + new Vector3(0,-1,0), LevelController.CubeType.VOID))
@@ -596,40 +623,40 @@ public class Player : NetworkBehaviour
 
  
 
-            /////////////////////
-                if (Health <= 0)
-                {
-                    _vertSpeed = 0;
-                    transform.localEulerAngles = new Vector3(0, _rotationY, -25);
+            // /////////////////////
+            //     if (Health <= 0)
+            //     {
+            //         _vertSpeed = 0;
+            //         transform.localEulerAngles = new Vector3(0, _rotationY, -25);
 
-                    foreach (Transform child in transform)
-                    {
-                        Light light = child.GetComponent<Light>();
-                        if (light != null)
-                        {
-                            light.gameObject.SetActive(true);
-                        }
-                    }
+            //         foreach (Transform child in transform)
+            //         {
+            //             Light light = child.GetComponent<Light>();
+            //             if (light != null)
+            //             {
+            //                 light.gameObject.SetActive(true);
+            //             }
+            //         }
 
-                }
-                else
-                {
-                    foreach (Transform child in transform)
-                    {
-                        Light light = child.GetComponent<Light>();
-                        if (light != null)
-                        {
-                            light.gameObject.SetActive(false);
-                        }
-                    }
+            //     }
+            //     else
+            //     {
+            //         foreach (Transform child in transform)
+            //         {
+            //             Light light = child.GetComponent<Light>();
+            //             if (light != null)
+            //             {
+            //                 light.gameObject.SetActive(false);
+            //             }
+            //         }
 
-                }
+            //     }
 
-                if (Health <= 0)
-                    if (Input.GetKeyDown(KeyCode.Mouse0))
-                    {
-                        ReSpawn(LevelController.mapCenter);
-                    }
+            //     if (Health <= 0)
+            //         if (Input.GetKeyDown(KeyCode.Mouse0))
+            //         {
+            //             ReSpawn(LevelController.mapCenter);
+            //         }
         //////////////////////////////////////
  
 

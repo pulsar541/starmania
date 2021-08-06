@@ -46,8 +46,7 @@ public class Fireball : NetworkBehaviour
                 Light light = child.GetComponent<Light>(); 
                 if(light != null) {
                     light.color = Color.yellow;   
-                }
-        
+                } 
             }
 
             Material mat = GetComponent<Renderer>().material;
@@ -162,7 +161,8 @@ public class Fireball : NetworkBehaviour
 
                 Cable cable = item.GetComponent<Cable>();
                 if(cable)
-                {
+                {   Vector3 cablePos = cable.gameObject.transform.position;
+                    LevelController.control.hasCable[Mathf.RoundToInt(cablePos.x), Mathf.RoundToInt(cablePos.y), Mathf.RoundToInt(cablePos.z)] = false;
                     NetworkServer.Destroy(cable.gameObject); 
                     NetworkServer.Destroy(gameObject);  
                 }

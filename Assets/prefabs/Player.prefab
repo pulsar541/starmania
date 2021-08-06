@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6285827040704903763
 Transform:
   m_ObjectHideFlags: 0
@@ -597,15 +597,16 @@ MonoBehaviour:
   _head: {fileID: 7449839142903610140}
   soundSourceFire: {fileID: 7486701960619885390}
   fireSound: {fileID: 8300000, guid: df7c34a5fff31c5489c3a6209493b318, type: 3}
-  gravity: -9.81
   speed: 1.2
   jumpSpeed: 4
   terminalVelocity: -20
+  deathVertSpeed: -9
   minFall: -1.5
   sensivityHor: 9
   sensivityVert: 9
   minVert: -90
   maxVert: 90
+  inCable: 0
   playerNumber: 0
   playerData: 0
   playerColor:
