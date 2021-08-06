@@ -151,15 +151,21 @@ public class Fireball : NetworkBehaviour
                         if (enemy.netId != owner)
                         {
                             if(isServer)
-                                enemy.ChangeHealth(enemy.Health - 5); 
+                                enemy.ChangeHealth(enemy.Health - 20); 
                             else  
-                                enemy.CmdChangeHealth(enemy.Health - 5);  
+                                enemy.CmdChangeHealth(enemy.Health - 20);  
 
                             NetworkServer.Destroy(gameObject);            
                         }
                     } 
                 }
 
+                Cable cable = item.GetComponent<Cable>();
+                if(cable)
+                {
+                    NetworkServer.Destroy(cable.gameObject); 
+                    NetworkServer.Destroy(gameObject);  
+                }
             }
 
             foreach (var item in Physics.OverlapBox(transform.position, transform.localScale/2))

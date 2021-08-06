@@ -112,11 +112,11 @@ public class LightManager : MonoBehaviour
     public void ActivateLight(Vector3 pos, int radius)
     {
  
-        for (int i = (int)pos.x - radius; i < (int)pos.x + radius; i++)
+        for (int i = (int)pos.x - radius; i <= (int)pos.x + radius; i++)
         {
-            for (int j = (int)pos.y - radius; j < (int)pos.y + radius; j++)
+            for (int j = (int)pos.y - radius; j <= (int)pos.y + radius; j++)
             {
-                for (int k = (int)pos.z - radius; k < (int)pos.z + radius; k++)
+                for (int k = (int)pos.z - radius; k <= (int)pos.z + radius; k++)
                 {
                     if (!isCorrectCluster(i, j, k))
                         continue;

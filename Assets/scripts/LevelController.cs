@@ -6,6 +6,11 @@ using Mirror;
 public class LevelController : NetworkBehaviour
 {
 
+
+
+    public static LevelController control;
+
+
     public static class CubeType
     {
         public const int VOID_OPT = -1;
@@ -49,12 +54,13 @@ public class LevelController : NetworkBehaviour
 
     public int actualDistance = 3;
 
-    private GameObject[,,] _cubeGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];  
+    public GameObject[,,] _cubeGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];  
     private GameObject[,,] _lampGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];
 
 
     public bool[,,] enemyTrigger = new bool[CUBES_I, CUBES_J, CUBES_K];
 
+    public bool[,,] hasCable = new bool[CUBES_I, CUBES_J, CUBES_K];
 
     public List<Vector3> checkPoints = new List<Vector3>();
     public List<GameObject> checkPointsGO = new List<GameObject>();
@@ -106,12 +112,12 @@ public class LevelController : NetworkBehaviour
     }
     public bool isCorrectCluster(Vector3 clusterPos)
     {
-        return (clusterPos.x >= 0
-                 && clusterPos.y >= 0
-                 && clusterPos.z >= 0
-                 && clusterPos.x < CUBES_I
-                 && clusterPos.y < CUBES_J
-                 && clusterPos.z < CUBES_K);
+        return (Mathf.Round(clusterPos.x) >= 0
+                 && Mathf.Round(clusterPos.y) >= 0
+                 && Mathf.Round(clusterPos.z) >= 0
+                 && Mathf.Round(clusterPos.x) < CUBES_I
+                 && Mathf.Round(clusterPos.y) < CUBES_J
+                 && Mathf.Round(clusterPos.z) < CUBES_K);
     }
 
 
@@ -120,21 +126,34 @@ public class LevelController : NetworkBehaviour
         return isCorrectCluster(i, j, k) && cubes[i, j, k] == cubeType;
     }
 
-    public bool isType(Vector3Int pos, int cubeType)
-    {
-        return isCorrectCluster(pos.x, pos.y, pos.z) && cubes[pos.x, pos.y, pos.z] == cubeType;
-    }
-
     public bool isType(Vector3  pos, int cubeType)
     {
-        return isCorrectCluster((int)pos.x, (int)pos.y, (int)pos.z) && cubes[(int)pos.x, (int)pos.y, (int)pos.z] == cubeType;
+        return isCorrectCluster(
+            (int)Mathf.Round(pos.x), 
+            (int)Mathf.Round(pos.y), 
+            (int)Mathf.Round(pos.z)) 
+
+        && cubes[(int)Mathf.Round(pos.x), 
+            (int)Mathf.Round(pos.y), 
+            (int)Mathf.Round(pos.z)] == cubeType;
     }
+ 
 
     bool isSolid(int i, int j, int k)
     {
         return isCorrectCluster(i, j, k) && (cubes[i, j, k] == CubeType.OUT || cubes[i, j, k] == CubeType.WALL);
     }
 
+    public bool HasCable(Vector3 pos)
+    {
+        return isCorrectCluster(
+            (int)Mathf.Round(pos.x), 
+            (int)Mathf.Round(pos.y), 
+            (int)Mathf.Round(pos.z)) 
+            &&  hasCable[(int)Mathf.Round(pos.x), 
+                         (int)Mathf.Round(pos.y), 
+                         (int)Mathf.Round(pos.z)] == true;
+    }
 
     public int NeihtboursCount(int i, int j, int k, int cubeType, int radius = 1)
     {
@@ -156,10 +175,10 @@ public class LevelController : NetworkBehaviour
 
     public int WallsHorizontAroundCount(Vector3 pos)
     {
-        int count = 0; //Mathf.Round
-        int i = (int)(pos.x);
-        int j = (int)(pos.y);
-        int k = (int)(pos.z);
+        int count = 0; 
+        int i = (int)Mathf.Round(pos.x);
+        int j = (int)Mathf.Round(pos.y);
+        int k = (int)Mathf.Round(pos.z);
 
         if (isType(i - 1, j, k, CubeType.WALL)
             || isType(i, j, k - 1, CubeType.WALL)
@@ -518,11 +537,11 @@ public class LevelController : NetworkBehaviour
 
             // } 
 
-            if(st == length/2)
+            if(st == length/3 || st == 2*length/3)
             {
                 Vector3 lightPos = new Vector3(i_cut,j_cut,k_cut);
                 if(isCorrectCluster(lightPos)) {
-                    lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 4);
+                    lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 3);
                 }
             }
 
@@ -708,7 +727,7 @@ public class LevelController : NetworkBehaviour
                     cubes[i, j, k] = (int)CubeType.WALL;
 
         for (int i = (int)mapCenter.x - 2; i <= (int)mapCenter.x + 2; i++)
-            for (int j = (int)mapCenter.y; j <= (int)mapCenter.y + 1; j++)
+            for (int j = (int)mapCenter.y; j <= (int)mapCenter.y ; j++)
                 for (int k = (int)mapCenter.z - 2; k <= (int)mapCenter.z + 2; k++)
                     cubes[i, j, k] = CubeType.VOID;
 
@@ -973,7 +992,9 @@ public class LevelController : NetworkBehaviour
 
     void Awake()
     {
+        control = this;
         lightManager = GameObject.Find("LightManager").GetComponent<LightManager>();
+        DontDestroyOnLoad(transform.gameObject);
     }
 
     void Start()

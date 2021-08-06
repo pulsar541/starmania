@@ -584,6 +584,8 @@ MonoBehaviour:
   Seed: 0
   Score: 0
   Vector3Vars: []
+  cablePrefab: {fileID: 6588852013111026216, guid: cfee0eb9334c04c4282aa5d7d3d0d052,
+    type: 3}
   mapGenPrefab: {fileID: 3386281084037051879, guid: 60387cd9dbae3ab4d9288d06cb39cff3,
     type: 3}
   fireballPrefab: {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4,
