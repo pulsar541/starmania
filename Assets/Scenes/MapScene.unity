@@ -224,8 +224,9 @@ GameObject:
   - component: {fileID: 856073928}
   - component: {fileID: 856073927}
   - component: {fileID: 856073926}
+  - component: {fileID: 856073929}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: MapCamera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -296,6 +297,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &856073929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 856073925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a77bdd24a0b265349a52a9c950e32104, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cubeSinglePrefab: {fileID: 0}
 --- !u!1 &1777317946
 GameObject:
   m_ObjectHideFlags: 0

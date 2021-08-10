@@ -34,9 +34,7 @@ public class MapSceneController : MonoBehaviour
 
     IEnumerator BuildMiniMap()
     {
-        Debug.Log("BuildMiniMap");
-
-
+        //Debug.Log("BuildMiniMap");
 
         //for(int delta = 0; delta < 50; delta++) 
         {
@@ -51,7 +49,7 @@ public class MapSceneController : MonoBehaviour
                       _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab);  
                     } 
                     
-                    if (_cubeGO[i, j, k])
+                    if (_cubeGO[i, j, k] && _cubeGO[i, j, k].transform)
                     {
                         _cubeGO[i, j, k].transform.position = new Vector3(i, j, k); 
                     } 
