@@ -746,7 +746,7 @@ public class LevelController : NetworkBehaviour
             int height = Random.Range(1, maxHeight);
             bool withPlatforms = false; //Random.Range(0,100)<50
 
-            if (max_cut < temp_max_cut && (max_cut % 33) == 0)
+            if (max_cut < temp_max_cut && (max_cut % 50) == 0)
             {
                 width *= 4;
                 height *= 4;

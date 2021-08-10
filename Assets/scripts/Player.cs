@@ -46,20 +46,24 @@ public class Player : NetworkBehaviour
     [SerializeField] private AudioSource soundSourceFire;
     [SerializeField] private AudioClip fireSound;
 
-    [SerializeField] private GameObject headCameraGO = null;
+    GameObject _headCameraGO = null;
 
     [SerializeField] private GameObject _mapMarkerGO = null;
-    
-   // private GameObject _mapCameraGO = null;   
+
+    // private GameObject _mapCameraGO = null;   
 
     LightManager lightManager;
 
     LevelController levelController;
 
-    private ControllerColliderHit _contact;
+    //   private ControllerColliderHit _contact;
 
-    private GameObject _goFpsCamera;
-  //  private Camera _fpsCamera;
+    GameObject audioListener = null;
+
+
+    private Transform _body = null;
+
+    private GameObject _fpsCameraGO;
 
     // private Rigidbody _rigidBody;
 
@@ -200,20 +204,26 @@ public class Player : NetworkBehaviour
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
         lightManager = (LightManager)GameObject.Find("LightManager").GetComponent<LightManager>();
         _charController = GetComponent<CharacterController>();
-      //   _mapCameraGO = GameObject.Find("CameraMap");
-       // _mapCameraGO.SetActive(false);
+        //   _mapCameraGO = GameObject.Find("CameraMap");
+        // _mapCameraGO.SetActive(false);
         _mapMarkerGO = GameObject.Find("MapMarker");
-        goDirLight = GameObject.Find("Directional Light");
-        goDirLight.SetActive(false);
+        _headCameraGO = GameObject.Find("Camera");
+
+        foreach (Transform child in transform)
+        {
+            if (child.name.IndexOf("Body") >= 0)
+            {
+                _body = child;
+                break;
+            }
+        }
+
+        audioListener = GameObject.Find("AudioListener");
     }
 
 
     void Start()
     {
-        
-      
-
-
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 20;
         Health = 100;
@@ -223,17 +233,22 @@ public class Player : NetworkBehaviour
         else
             CmdMapGenerator(netId);
 
-
         if (IsLocal)
         {
             levelController.BindPlayerGameObject(gameObject);
+            goDirLight = GameObject.Find("Directional Light");
+            goDirLight.SetActive(false);
+
+            _headCameraGO.transform.parent = _head.transform;
+            _headCameraGO.transform.localPosition = Vector3.zero;
+            _headCameraGO.SetActive(true);
+            _mapMarkerGO.SetActive(false);
         }
 
         pickupCheckpoints = new List<Vector3>();
 
         ChangeScoreValue(0);
 
-        
     }
 
 
@@ -252,7 +267,7 @@ public class Player : NetworkBehaviour
 
         // set the Player Color SyncVar
         //playerColor = Random.ColorHSV(0f, 1f, 0.9f, 0.9f, 1f, 1f);
-         playerColor = new Color(Random.Range(0.0f,1.0f), Random.Range(0.0f,1.0f), Random.Range(0.0f,1.0f));
+        playerColor = new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f));
         // Start generating updates
         //InvokeRepeating(nameof(UpdateData), 1, 1);
 
@@ -260,14 +275,16 @@ public class Player : NetworkBehaviour
 
 
 
-        foreach(Transform child in transform) { 
-            Renderer ren = child.GetComponent<Renderer>(); 
-            if(ren != null) { 
+        foreach (Transform child in transform)
+        {
+            Renderer ren = child.GetComponent<Renderer>();
+            if (ren != null)
+            {
                 ren.material.color = playerColor;
                 break;
             }
         }
-     
+
     }
 
 
@@ -304,18 +321,20 @@ public class Player : NetworkBehaviour
 
         ReSpawn(LevelController.mapCenter);
 
-       // RenderSettings.ambientLight = playerColor;
+        // RenderSettings.ambientLight = playerColor;
 
 
-        foreach(Transform child in transform) { 
-            Renderer ren = child.GetComponent<Renderer>(); 
-            if(ren != null) { 
+        foreach (Transform child in transform)
+        {
+            Renderer ren = child.GetComponent<Renderer>();
+            if (ren != null)
+            {
                 ren.material.color = playerColor;
                 break;
             }
         }
-     
- 
+
+
 
     }
 
@@ -358,8 +377,8 @@ public class Player : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        // if (!isLocalPlayer) 
-        //      return;
+      //  if (!isLocalPlayer)
+         //   return;
 
         //  if (SceneController.pause)
         //       return;
@@ -372,11 +391,11 @@ public class Player : NetworkBehaviour
                 _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
                 _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
 
-               // float delta =;
-                  
-                _rotationY +=  Input.GetAxis("Mouse X") * sensivityHor ;
+                // float delta =;
+
+                _rotationY += Input.GetAxis("Mouse X") * sensivityHor;
                 transform.localEulerAngles = new Vector3(0, _rotationY, 0);
-               
+
                 //transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
             }
 
@@ -388,8 +407,7 @@ public class Player : NetworkBehaviour
             lightManager.ActivateLight(transform.position, 3);
 
 
-           
-
+ 
             Vector3 newEnemySpawnPos = levelController.TryActivateEnemy(transform.position, 7);
             if (newEnemySpawnPos.x > 0)
             {
@@ -431,7 +449,7 @@ public class Player : NetworkBehaviour
 
             int px = (int)Mathf.Round(_charController.transform.position.x);
             int py = (int)Mathf.Round(_charController.transform.position.y);
-            int pz = (int)Mathf.Round(_charController.transform.position.z); 
+            int pz = (int)Mathf.Round(_charController.transform.position.z);
 
 
 
@@ -445,7 +463,7 @@ public class Player : NetworkBehaviour
 
             if (_charController.isGrounded)
             {
- 
+
                 if (Input.GetButtonDown("Jump") && Health > 0)
                 {
                     _vertSpeed = jumpSpeed;
@@ -458,19 +476,19 @@ public class Player : NetworkBehaviour
                 }
 
             }
-            else if(inCable)
+            else if (inCable)
             {
                 _vertSpeed = 0;
                 gravity = 0;
             }
             else
             {
-                                        //  allowWallJump = (levelController.cubes[px+1, py, pz] == LevelController.CubeType.WALL && dist(new Vector3(px+1, py, pz), _charController.transform.position) <= 1.05f
-                                        //                    ||  levelController.cubes[px, py, pz+1] == LevelController.CubeType.WALL && dist(new Vector3(px, py, pz+1), _charController.transform.position) <= 1.05f
-                                        //                    ||  levelController.cubes[px-1, py, pz] == LevelController.CubeType.WALL && dist(new Vector3(px-1, py, pz), _charController.transform.position) <= 1.05f
-                                        //                    ||  levelController.cubes[px, py, pz-1] == LevelController.CubeType.WALL && dist(new Vector3(px, py, pz-1), _charController.transform.position) <= 1.05f)  ;
+                //  allowWallJump = (levelController.cubes[px+1, py, pz] == LevelController.CubeType.WALL && dist(new Vector3(px+1, py, pz), _charController.transform.position) <= 1.05f
+                //                    ||  levelController.cubes[px, py, pz+1] == LevelController.CubeType.WALL && dist(new Vector3(px, py, pz+1), _charController.transform.position) <= 1.05f
+                //                    ||  levelController.cubes[px-1, py, pz] == LevelController.CubeType.WALL && dist(new Vector3(px-1, py, pz), _charController.transform.position) <= 1.05f
+                //                    ||  levelController.cubes[px, py, pz-1] == LevelController.CubeType.WALL && dist(new Vector3(px, py, pz-1), _charController.transform.position) <= 1.05f)  ;
 
-                                        /////allowWallJump = levelController.WallsHorizontAroundCount(_charController.transform.position) >= 2;
+                /////allowWallJump = levelController.WallsHorizontAroundCount(_charController.transform.position) >= 2;
 
                 // if (allowWallJump && Input.GetButtonDown("Jump") && Health > 0)
                 // {
@@ -481,43 +499,35 @@ public class Player : NetworkBehaviour
                 //     _vertSpeed = jumpSpeed;
                 //     wasFirstJump = false;
                 // }
-                                        // else if(allowWallJump){
-                                        //     if (Input.GetButtonDown("Jump"))
-                                        //     {
-                                        //         _vertSpeed = jumpSpeed; 
-                                        //         allowWallJump = false;
-                                        //     }      
-                                        // }   
+                // else if(allowWallJump){
+                //     if (Input.GetButtonDown("Jump"))
+                //     {
+                //         _vertSpeed = jumpSpeed; 
+                //         allowWallJump = false;
+                //     }      
+                // }   
 
 
-              //  else
-              //  {
-                    gravity = Player.STANDART_GRAVITY;
-                    _vertSpeed += gravity * Time.deltaTime;
+                //  else
+                //  {
+                gravity = Player.STANDART_GRAVITY;
+                _vertSpeed += gravity * Time.deltaTime;
 
-                    if (_vertSpeed < terminalVelocity)
-                    {
-                        _vertSpeed = terminalVelocity;
-                    }
-             //   }
+                if (_vertSpeed < terminalVelocity)
+                {
+                    _vertSpeed = terminalVelocity;
+                }
+                //   }
 
-            }
-
-            bool hitCeiling = false;
-            RaycastHit hit;
-            Vector3 rayStart = _charController.transform.position + new Vector3(0, _charController.height * 0.5f, 0);
-            if (_vertSpeed > 0 && Physics.Raycast(rayStart, Vector3.up * 10.0f, out hit))
-            {
-                float check = (_head.transform.localScale.y);
-                hitCeiling = hit.distance <= check;
-            }
-            if (hitCeiling)
-                _vertSpeed = 0;
-
-
-
-
-
+            } 
+    
+            if (_vertSpeed > 0 )
+                foreach (var item in Physics.OverlapSphere(_head.transform.position + new Vector3(0,0.1f,0), 0.1f))
+                { 
+                    Cube cube = item.GetComponent<Cube>();
+                    if (cube) 
+                    _vertSpeed = 0; 
+                }
 
 
             if (gravity != 0)
@@ -532,13 +542,7 @@ public class Player : NetworkBehaviour
             if (levelController.Builded)
             {
                 _charController.Move(movement);
-
-                // if(movement.magnitude > 0) {
-                //     lightManager.InsertLight(transform.position);
-                // }
             }
-
-
 
 
             if (transform.position.y < 0)
@@ -548,88 +552,67 @@ public class Player : NetworkBehaviour
 
             if (_charController.isGrounded && _vertSpeed < deathVertSpeed)
             {
-                Health = 0; ;
+                Health = 0;
             }
 
 
-            headCameraGO.GetComponent<PlayerHeadCamera>().SetIsPlayerWalking(
-                _charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")));
-   
- 
-            if(Input.GetKeyDown(KeyCode.Tab)) 
+            if (_headCameraGO)
+            {
+                _headCameraGO.GetComponent<PlayerHeadCamera>().SetIsPlayerWalking(
+                    _charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")));
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.Tab))
             {
                 _viewMode = 1 - _viewMode;
-
-                GameObject sceneController = GameObject.Find("SceneController");
-
+ 
                 switch (_viewMode)
                 {
                     case 0:
-                        headCameraGO.SetActive(true);
-                        _mapMarkerGO.SetActive(false);  
-                    break;
-                    case 1: 
-                        
-                        headCameraGO.SetActive(false);
+                        _headCameraGO.SetActive(true);
+                        _mapMarkerGO.SetActive(false);
+                        break;
+                    case 1:
+
+                        _headCameraGO.SetActive(false);
                         _mapMarkerGO.SetActive(true);
-                    break; 
+                        break;
                 }
-                
-                //viewMode = 1 - viewMode;  
-                goDirLight.SetActive(_viewMode == 1);
-                //StartCoroutine(LoadAsyncScene("MapScene",false));
-            }
  
-             Vector3 discretePos = new Vector3( 
-                Mathf.Round(transform.position.x),  
-                Mathf.Round(transform.position.y), 
-                Mathf.Round(transform.position.z));
+                goDirLight.SetActive(_viewMode == 1); 
+            }
 
-           _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0,1000,0); 
-  
-           _mapMarkerGO.transform.localEulerAngles = new Vector3(
-               _head.transform.localEulerAngles.x,
-               _charController.transform.localEulerAngles.y,
-               0              
-            );    
+            Vector3 discretePos = new Vector3(
+               Mathf.Round(transform.position.x),
+               Mathf.Round(transform.position.y),
+               Mathf.Round(transform.position.z));
 
+            _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0, 1000, 0);
+ 
+            _mapMarkerGO.transform.localEulerAngles = new Vector3(
+                _head.transform.localEulerAngles.x,
+                _charController.transform.localEulerAngles.y,
+                0
+             );
 
-            // if (_fpsCamera)
-            // {
-            //     _fpsCamera.transform.localPosition =  Vector3.zero;
-            //     if(SceneController.viewMode == SceneController.ViewModes.ViewModeFPS){
-            //         _fpsCamera.transform.localPosition =  Vector3.zero;
-            //     }
-            //     else { 
-            //        // _fpsCamera.transform.position = _head.transform.position * 0.01f + new Vector3(0, 1000, 0); 
-            //           _fpsCamera.transform.localPosition += new Vector3(1000,0,-0.5f);
-            //         // _fpsCamera.
-            //     }
-                
-            //     if (Health <= 0)
-            //         _fpsCamera.transform.position +=_fpsCamera.transform.TransformDirection(new Vector3(0, 0, -0.5f));
+            if (_body)
+            {
+                if (_charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
+                {
+                    _walkCounter += speed * (shiftMulSpeeed > 1 ? 1.5f : 1.0f) * Time.deltaTime * 5.0f;
+                    _body.transform.localPosition = new Vector3(0, Mathf.Abs(Mathf.Sin(_walkCounter)) * 0.04f, 0);
+                    _body.transform.localPosition += new Vector3(-Mathf.Cos(_walkCounter) * 0.015f, 0, 0);
+                    _body.transform.localEulerAngles = new Vector3((Mathf.Sin(_walkCounter * 2)) * 0.15f, 0, (Mathf.Sin(_walkCounter)) * 0.3f);
+                }
 
-            //     if (_charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
-            //     {
-            //         _walkCounter += speed * (shiftMulSpeeed > 1 ? 1.5f : 1.0f) * Time.deltaTime * 5.0f;
+            }
 
-            //     } 
-
-            //     if(SceneController.viewMode == 0) {
-            //         _fpsCamera.transform.position += new Vector3(0, Mathf.Abs(Mathf.Sin(_walkCounter)) * 0.04f, 0);
-            //         _fpsCamera.transform.position += transform.TransformDirection(new Vector3(-Mathf.Cos(_walkCounter) * 0.02f, 0, 0));
-            //     } 
-            //     else
-            //     {
-            //         _fpsCamera.transform.localPosition +=  new Vector3(0, 0, -3.0f);  
-            //     }
-
-            //     //_fpsCamera.transform.rotation = _head.transform.rotation;
-            //     _fpsCamera.transform.localEulerAngles = Vector3.zero;
-            //     _fpsCamera.transform.localEulerAngles += new Vector3((Mathf.Sin(_walkCounter * 2)) * 0.1f, 0, (-Mathf.Sin(_walkCounter)) * 0.2f);
-
-
-            // }
+            if (audioListener)
+            {
+                audioListener.transform.position = _head.transform.position;
+                audioListener.transform.rotation = _head.transform.rotation;
+            }
 
             if (Input.GetKeyDown(KeyCode.Mouse0) && Health > 0)
             {
@@ -654,17 +637,17 @@ public class Player : NetworkBehaviour
             if (Input.GetKeyDown(KeyCode.Mouse1) && Health > 0)
             {
                 if ((playerNumber % 2) == 0)
-                { 
-                    Vector3 pos = new Vector3(px,py,pz);
-                    Vector3 spawnPos = transform.position +  transform.TransformDirection(new Vector3(0, 0, 0.85f));  
+                {
+                    Vector3 pos = new Vector3(px, py, pz);
+                    Vector3 spawnPos = transform.position + transform.TransformDirection(new Vector3(0, 0, 0.85f));
 
- 
-                    if(!LevelController.control.HasCable(spawnPos) &&  LevelController.control.isType(pos + new Vector3(0,-1,0), LevelController.CubeType.VOID))
-                        StartCoroutine(MakeCable(spawnPos, isServer, netId));  
 
-                } 
+                    if (!LevelController.control.HasCable(spawnPos) && LevelController.control.isType(pos + new Vector3(0, -1, 0), LevelController.CubeType.VOID))
+                        StartCoroutine(MakeCable(spawnPos, isServer, netId));
 
-               
+                }
+
+
                 // for(float ii  = 48; ii<=52; ii+=0.1f)
                 // for(float kk  = 48; kk<=52; kk+=0.1f)   
                 // {
@@ -674,15 +657,15 @@ public class Player : NetworkBehaviour
                 //         StartCoroutine(MakeCable(new Vector3(ii,50,kk), isServer, netId)); 
                 //     }                    
                 // }
-                                 
-                
-/*
 
-            Vector3 p = transform.position;
 
-            if(LevelController.control._cubeGO[(int)p.x, (int)(p.y -0.5f), (int)p.z])
-                Debug.Log("TYPE=" + LevelController.control._cubeGO[(int)p.x, (int)(p.y-0.5f), (int)p.z].GetInstanceID());
-*/
+                /*
+
+                            Vector3 p = transform.position;
+
+                            if(LevelController.control._cubeGO[(int)p.x, (int)(p.y -0.5f), (int)p.z])
+                                Debug.Log("TYPE=" + LevelController.control._cubeGO[(int)p.x, (int)(p.y-0.5f), (int)p.z].GetInstanceID());
+                */
             }
 
 
@@ -704,18 +687,18 @@ public class Player : NetworkBehaviour
 
             if (IsLocal)
             {
+                _head.GetComponent<Renderer>().enabled = Health > 0;
                 foreach (Renderer r in this.gameObject.GetComponentsInChildren<Renderer>())
                 {
-                    r.enabled = false;
+                    r.enabled = false; // !inCable;
                     if (Health <= 0)
                         r.enabled = true;
                 }
 
-
             }
 
 
- 
+
 
             // /////////////////////
             //     if (Health <= 0)
@@ -751,22 +734,22 @@ public class Player : NetworkBehaviour
             //         {
             //             ReSpawn(LevelController.mapCenter);
             //         }
-        //////////////////////////////////////
- 
+            //////////////////////////////////////
 
 
-                Vector3 point0 = transform.position  + new Vector3(0, -0.2f,0);
-                Vector3 point1 = transform.position  + new Vector3(0, 0.2f,0); 
-                inCable = false;
-                foreach (var item in Physics.OverlapCapsule (point0, point1, 0.25f))
+
+            Vector3 point0 = transform.position + new Vector3(0, -0.2f, 0);
+            Vector3 point1 = transform.position + new Vector3(0, 0.2f, 0);
+            inCable = false;
+            foreach (var item in Physics.OverlapCapsule(point0, point1, 0.25f))
+            {
+                Cable cable = item.GetComponent<Cable>();
+                if (cable)
                 {
-                    Cable cable = item.GetComponent<Cable>();
-                    if (cable)
-                    {    
-                        inCable = true;   
-                    }  
+                    inCable = true;
                 }
-                        
+            }
+
 
 
 
@@ -775,18 +758,18 @@ public class Player : NetworkBehaviour
 
 
     }
-  
+
 
     void FixedUpdate()
     {
- 
-        if(hasAuthority)
+
+        if (hasAuthority)
         {
-        /////////////////////
+            /////////////////////
             if (Health <= 0)
             {
                 _vertSpeed = 0;
-                transform.localEulerAngles = new Vector3(0, _rotationY, -25);
+              //  transform.localEulerAngles = new Vector3(0, _rotationY, -25);
 
                 foreach (Transform child in transform)
                 {
@@ -816,12 +799,12 @@ public class Player : NetworkBehaviour
                 {
                     ReSpawn(LevelController.mapCenter);
                 }
-    //////////////////////////////////////
+            //////////////////////////////////////
 
-            }
+        }
     }
 
- 
+
 
     private void OnSpeedChanged(float value)
     {
@@ -964,28 +947,28 @@ public class Player : NetworkBehaviour
     //////////////////////////////////////////////////////////////////////////////////
 
 
-  
+
     IEnumerator MakeCable(Vector3 startPos, bool isServer, uint netId)
-    { 
-        Vector3 pos = startPos;  
-        while(
+    {
+        Vector3 pos = startPos;
+        while (
             _charController.isGrounded
-            && LevelController.control.isType(pos, LevelController.CubeType.VOID)       
+            && LevelController.control.isType(pos, LevelController.CubeType.VOID)
             && !LevelController.control.HasCable(pos))
-        {   
+        {
             LevelController.control.hasCable[(int)Mathf.Round(pos.x), (int)Mathf.Round(pos.y), (int)Mathf.Round(pos.z)] = true;
-            if(isServer)
+            if (isServer)
             {
                 HangCable(netId, pos);
             }
-            else 
+            else
             {
                 CmdHangCable(netId, pos);
-            }            
-            pos += new Vector3(0,-1,0);  
+            }
+            pos += new Vector3(0, -1, 0);
             yield return new WaitForSeconds(0.5f);
-        } 
-        yield return null; 
+        }
+        yield return null;
     }
 
 
