@@ -237,12 +237,19 @@ public class Player : NetworkBehaviour
         {
             levelController.BindPlayerGameObject(gameObject);
             goDirLight = GameObject.Find("Directional Light");
-            goDirLight.SetActive(false);
+            if(goDirLight)
+                goDirLight.SetActive(false);
 
-            _headCameraGO.transform.parent = _head.transform;
-            _headCameraGO.transform.localPosition = Vector3.zero;
-            _headCameraGO.SetActive(true);
-            _mapMarkerGO.SetActive(false);
+            if(_headCameraGO && _head) 
+            {
+                _headCameraGO.transform.parent = _head.transform;
+                _headCameraGO.transform.localPosition = Vector3.zero;
+                _headCameraGO.SetActive(true);
+            }
+
+            if(_mapMarkerGO)
+                _mapMarkerGO.SetActive(false);
+           
         }
 
         pickupCheckpoints = new List<Vector3>();
@@ -556,11 +563,11 @@ public class Player : NetworkBehaviour
             }
 
 
-            if (_headCameraGO)
-            {
-                _headCameraGO.GetComponent<PlayerHeadCamera>().SetIsPlayerWalking(
-                    _charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")));
-            }
+            // if (_headCameraGO)
+            // {
+            //     _headCameraGO.GetComponent<PlayerHeadCamera>().SetIsPlayerWalking(
+            //         _charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")));
+            // }
 
 
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -588,13 +595,16 @@ public class Player : NetworkBehaviour
                Mathf.Round(transform.position.y),
                Mathf.Round(transform.position.z));
 
-            _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0, 1000, 0);
- 
-            _mapMarkerGO.transform.localEulerAngles = new Vector3(
-                _head.transform.localEulerAngles.x,
-                _charController.transform.localEulerAngles.y,
-                0
-             );
+            if(_mapMarkerGO)
+            {
+                _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0, 1000, 0);
+    
+                _mapMarkerGO.transform.localEulerAngles = new Vector3(
+                    _head.transform.localEulerAngles.x,
+                    _charController.transform.localEulerAngles.y,
+                    0
+                );
+            }
 
             if (_body)
             {
@@ -634,7 +644,7 @@ public class Player : NetworkBehaviour
 
 
 
-            if (Input.GetKeyDown(KeyCode.Mouse1) && Health > 0)
+            if (Input.GetKeyDown(KeyCode.Mouse1) && Health > 0 &&  _charController.isGrounded)
             {
                 if ((playerNumber % 2) == 0)
                 {
@@ -951,9 +961,7 @@ public class Player : NetworkBehaviour
     IEnumerator MakeCable(Vector3 startPos, bool isServer, uint netId)
     {
         Vector3 pos = startPos;
-        while (
-            _charController.isGrounded
-            && LevelController.control.isType(pos, LevelController.CubeType.VOID)
+        while (  LevelController.control.isType(pos, LevelController.CubeType.VOID)
             && !LevelController.control.HasCable(pos))
         {
             LevelController.control.hasCable[(int)Mathf.Round(pos.x), (int)Mathf.Round(pos.y), (int)Mathf.Round(pos.z)] = true;
