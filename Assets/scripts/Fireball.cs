@@ -124,7 +124,7 @@ public class Fireball : NetworkBehaviour
     {
          //lightManagerGO.ActivateLight(transform.position, 3);
 
-        if ( inited && isServer )
+        if ( inited /*&& isServer */)
         {
             transform.Translate(_movement * Time.deltaTime);
            // Vector3 lpos = new Vector3((int)transform.position.x, (int)transform.position.y,(int)transform.position.z);
@@ -137,8 +137,11 @@ public class Fireball : NetworkBehaviour
                 {
                     if (player.netId != owner)
                     {
-                        ///player.ChangeHealthValue(player.Health - 10); //отнимаем одну жизнь по аналогии с примером SyncVar 
-                       // NetworkServer.Destroy(gameObject);  
+                        if(isServer)
+                            player.ChangeHealthValue(player.Health - 50);  
+                        else
+                            player.CmdChangeHealth(player.Health - 50);   
+ 
                     }
                 } 
 

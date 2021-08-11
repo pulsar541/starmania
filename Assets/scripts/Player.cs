@@ -12,7 +12,10 @@ public class Player : NetworkBehaviour
 
     //SyncList<Vector3> _SyncVector3Vars = new SyncList<Vector3>();
 
-    public int Health = 100;
+    public int Health = 100; 
+    [SyncVar(hook = nameof(SyncHealth))] //задаем метод, который будет выполняться при синхронизации переменной
+    int _SyncHealth;
+
 
     public int Seed;
     [SyncVar(hook = nameof(SyncSeed))] //задаем метод, который будет выполняться при синхронизации переменной
@@ -658,8 +661,8 @@ public class Player : NetworkBehaviour
 
             if (Input.GetKeyDown(KeyCode.Mouse1) && Health > 0 &&  _charController.isGrounded)
             {
-                if ((playerNumber % 2) == 0)
-                {
+              //  if ((playerNumber % 2) == 0)
+               // {
                     Vector3 pos = new Vector3(px, py, pz);
                     Vector3 spawnPos = transform.position + transform.TransformDirection(new Vector3(0, 0, 0.85f));
 
@@ -667,27 +670,8 @@ public class Player : NetworkBehaviour
                     if (!LevelController.control.HasCable(spawnPos) && LevelController.control.isType(pos + new Vector3(0, -1, 0), LevelController.CubeType.VOID))
                         StartCoroutine(MakeCable(spawnPos, isServer, netId));
 
-                }
-
-
-                // for(float ii  = 48; ii<=52; ii+=0.1f)
-                // for(float kk  = 48; kk<=52; kk+=0.1f)   
-                // {
-
-                //     if(Mathf.Round(ii) == 50 &&  Mathf.Round(kk) == 50)
-                //     {
-                //         StartCoroutine(MakeCable(new Vector3(ii,50,kk), isServer, netId)); 
-                //     }                    
-                // }
-
-
-                /*
-
-                            Vector3 p = transform.position;
-
-                            if(LevelController.control._cubeGO[(int)p.x, (int)(p.y -0.5f), (int)p.z])
-                                Debug.Log("TYPE=" + LevelController.control._cubeGO[(int)p.x, (int)(p.y-0.5f), (int)p.z].GetInstanceID());
-                */
+               // }
+ 
             }
 
 
@@ -721,77 +705,14 @@ public class Player : NetworkBehaviour
 
 
 
-
-            // /////////////////////
-            //     if (Health <= 0)
-            //     {
-            //         _vertSpeed = 0;
-            //         transform.localEulerAngles = new Vector3(0, _rotationY, -25);
-
-            //         foreach (Transform child in transform)
-            //         {
-            //             Light light = child.GetComponent<Light>();
-            //             if (light != null)
-            //             {
-            //                 light.gameObject.SetActive(true);
-            //             }
-            //         }
-
-            //     }
-            //     else
-            //     {
-            //         foreach (Transform child in transform)
-            //         {
-            //             Light light = child.GetComponent<Light>();
-            //             if (light != null)
-            //             {
-            //                 light.gameObject.SetActive(false);
-            //             }
-            //         }
-
-            //     }
-
-            //     if (Health <= 0)
-            //         if (Input.GetKeyDown(KeyCode.Mouse0))
-            //         {
-            //             ReSpawn(_spawnPosition);
-            //         }
-            //////////////////////////////////////
-
-
-
-            Vector3 point0 = transform.position + new Vector3(0, -0.2f, 0);
-            Vector3 point1 = transform.position + new Vector3(0, 0.2f, 0);
-            inCable = false;
-            foreach (var item in Physics.OverlapCapsule(point0, point1, 0.25f))
-            {
-                Cable cable = item.GetComponent<Cable>();
-                if (cable)
-                {
-                    inCable = true;
-                }
-            }
-
-
-
-
-        } // if hasAuthority
-
-
-
-    }
-
-
-    void FixedUpdate()
-    {
-
+ 
         if (hasAuthority)
         {
             /////////////////////
             if (Health <= 0)
             {
-                _vertSpeed = 0;
-              //  transform.localEulerAngles = new Vector3(0, _rotationY, -25);
+              //  _vertSpeed = 0;
+                transform.localEulerAngles = new Vector3(0, _rotationY, -45);
 
                 foreach (Transform child in transform)
                 {
@@ -824,8 +745,30 @@ public class Player : NetworkBehaviour
             //////////////////////////////////////
 
         }
+
+            Vector3 point0 = transform.position + new Vector3(0, -0.2f, 0);
+            Vector3 point1 = transform.position + new Vector3(0, 0.2f, 0);
+            inCable = false;
+            foreach (var item in Physics.OverlapCapsule(point0, point1, 0.25f))
+            {
+                Cable cable = item.GetComponent<Cable>();
+                if (cable)
+                {
+                    inCable = true;
+                }
+            }
+
+
+
+
+        } // if hasAuthority
+
+
+
     }
 
+
+ 
 
 
     private void OnSpeedChanged(float value)
@@ -969,6 +912,23 @@ public class Player : NetworkBehaviour
     //////////////////////////////////////////////////////////////////////////////////
 
 
+    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
+    public void ChangeHealthValue(int newValue)
+    {
+        _SyncHealth = newValue;
+    }
+
+    void SyncHealth(int oldValue, int newValue) //обязательно делаем два значения - старое и новое. 
+    {
+        Health = newValue;
+    }
+
+    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
+    public void CmdChangeHealth(int newValue) //обязательно ставим Cmd в начале названия метода
+    {
+        ChangeHealthValue(newValue); //переходим к непосредственному изменению переменной
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     IEnumerator MakeCable(Vector3 startPos, bool isServer, uint netId)
     {
