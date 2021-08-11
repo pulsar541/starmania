@@ -114,6 +114,8 @@ public class Player : NetworkBehaviour
 
     private int _viewMode = 0;
 
+    private Vector3 _spawnPosition;
+
     /////////////////////////////////////
 
     public event System.Action<int> OnPlayerNumberChanged;
@@ -130,6 +132,7 @@ public class Player : NetworkBehaviour
             player.playerNumber = playerNumber++;
         }
     }
+    
 
     [Header("SyncVars")]
 
@@ -196,6 +199,11 @@ public class Player : NetworkBehaviour
     }
 
     /////////////////////////////////////////
+    public int TeamNumber()
+    {
+        return (playerNumber % 2) == 0 ? 0 : 1;
+    }
+    /////////////////////////////////////////
 
 
 
@@ -203,9 +211,7 @@ public class Player : NetworkBehaviour
     {
         levelController = (LevelController)GameObject.Find("LevelController").GetComponent<LevelController>();
         lightManager = (LightManager)GameObject.Find("LightManager").GetComponent<LightManager>();
-        _charController = GetComponent<CharacterController>();
-        //   _mapCameraGO = GameObject.Find("CameraMap");
-        // _mapCameraGO.SetActive(false);
+        _charController = GetComponent<CharacterController>(); 
         _mapMarkerGO = GameObject.Find("MapMarker");
         _headCameraGO = GameObject.Find("Camera");
 
@@ -219,8 +225,17 @@ public class Player : NetworkBehaviour
         }
 
         audioListener = GameObject.Find("AudioListener");
+
+        LevelController.control.Notify += InitPosition;
+   
     }
 
+
+    void InitPosition(Vector3[] teamPositions)
+    {
+        _spawnPosition = teamPositions[TeamNumber()];
+        _charController.transform.position = teamPositions[TeamNumber()];
+    }
 
     void Start()
     {
@@ -229,9 +244,9 @@ public class Player : NetworkBehaviour
         Health = 100;
 
         if (isServer)
-            MapGenerator(netId);
+            InitMapGenerator(netId);
         else
-            CmdMapGenerator(netId);
+            CmdInitMapGenerator(netId);
 
         if (IsLocal)
         {
@@ -249,6 +264,9 @@ public class Player : NetworkBehaviour
 
             if(_mapMarkerGO)
                 _mapMarkerGO.SetActive(false);
+
+
+           
            
         }
 
@@ -278,7 +296,7 @@ public class Player : NetworkBehaviour
         // Start generating updates
         //InvokeRepeating(nameof(UpdateData), 1, 1);
 
-        ReSpawn(LevelController.mapCenter);
+        ReSpawn(_spawnPosition);
 
 
 
@@ -326,7 +344,7 @@ public class Player : NetworkBehaviour
         OnPlayerColorChanged.Invoke(playerColor);
         OnPlayerDataChanged.Invoke(playerData);
 
-        ReSpawn(LevelController.mapCenter);
+        ReSpawn(_spawnPosition);
 
         // RenderSettings.ambientLight = playerColor;
 
@@ -561,13 +579,7 @@ public class Player : NetworkBehaviour
             {
                 Health = 0;
             }
-
-
-            // if (_headCameraGO)
-            // {
-            //     _headCameraGO.GetComponent<PlayerHeadCamera>().SetIsPlayerWalking(
-            //         _charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")));
-            // }
+ 
 
 
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -742,7 +754,7 @@ public class Player : NetworkBehaviour
             //     if (Health <= 0)
             //         if (Input.GetKeyDown(KeyCode.Mouse0))
             //         {
-            //             ReSpawn(LevelController.mapCenter);
+            //             ReSpawn(_spawnPosition);
             //         }
             //////////////////////////////////////
 
@@ -807,7 +819,7 @@ public class Player : NetworkBehaviour
             if (Health <= 0)
                 if (Input.GetKeyDown(KeyCode.Mouse0))
                 {
-                    ReSpawn(LevelController.mapCenter);
+                    ReSpawn(_spawnPosition);
                 }
             //////////////////////////////////////
 
@@ -843,8 +855,8 @@ public class Player : NetworkBehaviour
     [Server]
     public void Fire(uint owner, Vector3 startPos, Vector3 dir)
     {
-        if ((playerNumber % 2) == 0)
-        {
+        // if ((playerNumber % 2) == 0)
+        // {
 
             //   if (fireBallExpandMode && _lastFireballGo != null)
             //  {
@@ -856,20 +868,20 @@ public class Player : NetworkBehaviour
 
             GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
             NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
-            Vector3 fbMovement = dir.normalized * 3.0f + movement;
+            Vector3 fbMovement = dir.normalized * 6.0f + movement;
             fireballGo.GetComponent<Fireball>().Init(owner, startPos, fbMovement, 0); //инициализируем поведение пули
                                                                                       //    _lastFireballGo = fireballGo;
                                                                                       //    fireBallExpandMode = true;
 
             //  }
-        }
-        else
-        {
-            Vector3 fbMovement = dir.normalized * 6.0f + movement;
-            GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
-            NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
-            fireballGo.GetComponent<Fireball>().Init(owner, startPos, fbMovement, 1); //инициализируем поведение пули            
-        }
+        // }
+        // else
+        // {
+        //     Vector3 fbMovement = dir.normalized * 6.0f + movement;
+        //     GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
+        //     NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
+        //     fireballGo.GetComponent<Fireball>().Init(owner, startPos, fbMovement, 1); //инициализируем поведение пули            
+        // }
 
     }
 
@@ -884,7 +896,7 @@ public class Player : NetworkBehaviour
 
 
     [Server]
-    public void MapGenerator(uint owner)
+    public void InitMapGenerator(uint owner)
     {
         Vector3 startPos = new Vector3(Random.Range(1, 256), Random.Range(1, 256), Random.Range(1, 256));
         GameObject mapGeneratorGO = Instantiate(mapGenPrefab, startPos, Quaternion.identity);
@@ -893,9 +905,9 @@ public class Player : NetworkBehaviour
 
 
     [Command]
-    public void CmdMapGenerator(uint owner)
+    public void CmdInitMapGenerator(uint owner)
     {
-        MapGenerator(owner);
+        InitMapGenerator(owner);
     }
 
 

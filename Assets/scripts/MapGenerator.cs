@@ -7,6 +7,7 @@ public class MapGenerator : NetworkBehaviour
 { 
     LevelController levelController; 
     public static bool levelAlreadyGenerated = false;
+ 
 
     void Awake()
     {
@@ -16,8 +17,7 @@ public class MapGenerator : NetworkBehaviour
     void Start()
     {   
         if(levelAlreadyGenerated)
-            return;
- 
+            return; 
 
         int seed = (int)transform.position.x  +  100 * ((int)transform.position.y  +  (100 * (int)transform.position.z)) ; 
         levelController.GenerateLevel(seed);
@@ -25,4 +25,9 @@ public class MapGenerator : NetworkBehaviour
 
         levelAlreadyGenerated = true;
     } 
+
+    public static void Reset() 
+    {
+        levelAlreadyGenerated = false;
+    }
 }

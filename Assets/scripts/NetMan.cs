@@ -38,7 +38,7 @@ public class NetMan : NetworkManager
         {
            base.OnStartServer();
            SceneController.Resume(); 
-           MapGenerator.levelAlreadyGenerated = false;
+           MapGenerator.Reset();
         
         }
  
@@ -46,7 +46,7 @@ public class NetMan : NetworkManager
         {
             base.OnStartClient();
             SceneController.Resume();
-            MapGenerator.levelAlreadyGenerated = false;
+            MapGenerator.Reset();
         }
  
 
@@ -54,7 +54,7 @@ public class NetMan : NetworkManager
         {
            base.OnStopServer();
            SceneController.Pause(); 
-           MapGenerator.levelAlreadyGenerated = false;
+           MapGenerator.Reset();
            GameObject.Find("Camera").transform.parent = null;
         }
 }

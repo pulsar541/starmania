@@ -4,12 +4,11 @@ using UnityEngine;
 using Mirror;
 
 public class LevelController : NetworkBehaviour
-{
+{ 
+    public static LevelController control; 
 
-
-
-    public static LevelController control;
-
+    public delegate void BuilderHandler(Vector3[] teamPositions);
+    public event BuilderHandler Notify;
 
     public static class CubeType
     {
@@ -81,6 +80,9 @@ public class LevelController : NetworkBehaviour
 
       
     private bool _mapOfLevelBuilded = false;
+
+    private Vector3[] teamPositions = new Vector3[3];
+
 
     public bool Builded
     {
@@ -561,10 +563,7 @@ public class LevelController : NetworkBehaviour
 
 
             }
-
-
-
-
+ 
 
             // if (withBridges)
             // {   int ii_cut = Mathf.RoundToInt(i_cut);
@@ -613,22 +612,7 @@ public class LevelController : NetworkBehaviour
         return new Vector3(i_cut, j_cut, k_cut);
 
     }
-
-
-    // void MakeRoom(int roomHalfSizeX,
-    //               int roomHalfSizeY,
-    //               int roomHalfSizeZ)
-    // {
-    //     for (int ii = i_cut - roomHalfSizeX; ii <= i_cut + roomHalfSizeX; ii++)
-    //         for (int jj = j_cut - roomHalfSizeY; jj <= j_cut + roomHalfSizeY; jj++)
-    //             for (int kk = k_cut; kk <= k_cut + roomHalfSizeZ; kk++)
-    //                 if (correctIndex(ii, jj, kk))
-    //                 {
-    //                     //int rr = Random.Range(0, 100);
-    //                     //if (rr < 50 || rr > 55) 
-    //                     cubes[ii, jj, kk] = 0;
-    //                 }
-    // }
+ 
 
 
     private Vector3 GetDirMovementByOrthoDir(OrthoDir dir)
@@ -651,81 +635,8 @@ public class LevelController : NetworkBehaviour
 
         return new Vector3(0, 0, 0);
     }
-
-    // private void GenBigCrossRooms(Vector3 startPos) {
-    //   //  Dir oldDir = new Dir(); 
-
-    //     int ox = (int)startPos.x;
-    //     int oy = (int)startPos.y;
-    //     int oz = (int)startPos.z; 
-
-    //     i_cut = ox;
-    //     j_cut = oy;
-    //     k_cut = oz;
-
-    //     int max_cut = 100;
-    //     int temp_max_cut = max_cut;
-
-    //     int globalStepNum = 0; 
-    //     do
-    //     {
-    //         globalStepNum ++; 
-    //        // Dir dir =; 
-
-
-    //         Vector3 dirM = new Vector3(Random.Range(-1, 1),Random.Range(-1, 1), Random.Range(-1, 1));
-
-    //         OrthoDir dir = (OrthoDir)Random.Range(0.0f, (int)OrthoDir.GO_DOWN );
-    //         dirM = GetDirMovementByOrthoDir(dir); 
-
-
-    //         int steps = Random.Range(3, 15); 
-
-
-    //         if(dir == OrthoDir.GO_UP || dir == OrthoDir.GO_DOWN) 
-    //               steps=Random.Range(0,1);
-
-    //         if ((globalStepNum%5)==0)
-    //         {  
-    //             int width = Random.Range(2, steps/2);
-    //             int height = Random.Range(2, steps/2);
-    //             ProrezKoridor(steps, dirM, width, height, false, false);
-    //         }
-    //         else 
-    //         {
-
-    //             steps = Random.Range(3, 10); 
-    //             //if(dir == Dir.GO_UP || dir == Dir.GO_DOWN) 
-    //             //    steps=Random.Range(0,1);
-
-    //              //dirM = new Vector3(Random.Range(-1.0f, 1.0f),Random.Range(-1.0f, 1.0f),Random.Range(-1.0f, 1.0f));
-    //               if(dir == OrthoDir.GO_UP || dir == OrthoDir.GO_DOWN) 
-    //               steps=Random.Range(0,1);
-
-    //             int width = Random.Range(1, 2);
-    //             int height = Random.Range(1, 2); 
-
-    //             // if(dir == Dir.GO_UP || dir == Dir.GO_DOWN) 
-    //             //     steps/=2;
-
-    //             ProrezKoridor(steps, dirM, width, height, true, false); 
-    //         }
-
-    //         max_cut --; 
-    //         //oldDir = dir; 
-
-    //         // ox = i_cut;
-    //         // oy = j_cut;
-    //         // oz = k_cut; 
-
-    //     } while (max_cut > 0);
-
-    // } 
-
-
-
-
-
+ 
+ 
 
     private void GenOrthoTunnels(Vector3 startPos, int maxWidth, int maxHeight, int tunnelsCount, int tunnelMinLength, int tunnelMaxLength, out Vector3 someMiddlePos)
     {
@@ -785,13 +696,23 @@ public class LevelController : NetworkBehaviour
         return count;
     }
 
-    public Vector3 GenerateLevel(int seed)
+    void SetCubeType(Vector3 pos, int cubeType)
+    {
+        int i = Mathf.RoundToInt(pos.x);
+        int j = Mathf.RoundToInt(pos.y);
+        int k = Mathf.RoundToInt(pos.z);
+
+        if(isCorrectCluster(i,j,k)) {
+            cubes[i,j,k] = cubeType;
+        }
+    }
+
+    public void GenerateLevel(int seed)
     {
         Clear();
         if (seed > 0)
             Random.InitState(seed);
-
-        Vector3 playerStartPosition;
+ 
 
         for (int i = 0; i < CUBES_I; i++)
             for (int j = 0; j < CUBES_J; j++)
@@ -803,124 +724,34 @@ public class LevelController : NetworkBehaviour
                 for (int k = (int)mapCenter.z - 2; k <= (int)mapCenter.z + 2; k++)
                     cubes[i, j, k] = CubeType.VOID;
 
-        ant = LevelController.mapCenter;
+        ant = LevelController.mapCenter; 
 
-        playerStartPosition = ant;
-
-        Vector3 somePos = new Vector3();
-
+        Vector3 somePos = new Vector3(); 
 
         lightManager.TryInsertLight(LevelController.mapCenter, Color.white, 5);
 
         GenOrthoTunnels(mapCenter, 3, 3, 300, 3, 8, out somePos);
+        teamPositions[0] = somePos;
         GenOrthoTunnels(somePos, 4, 4, 300, 4, 8, out somePos);
-        //GenOrthoTunnels(somePos, 3, 3, 100, 2, 7, out somePos);
+        teamPositions[1] = somePos;
 
-        //  GenBigRooms(3);
-
-        //      GenOrthoTunnels(new Vector3(Random.Range), 25, 25, 1, 1, 1, out somePos);
-
-
-
-        GenCheckpoints(10);
-
-        //GenSpikes(100);
-
-        //GenBigCrossRooms(mapCenter);
-
-        //GenBigDiagonalRooms(mapCenter);
+        SetCubeType(teamPositions[0] + new Vector3(0,-1,0) , (int) CubeType.WALL);
+        SetCubeType(teamPositions[0] + new Vector3(1,0,0) , (int) CubeType.VOID);
+        SetCubeType(teamPositions[0] + new Vector3(0,1,0) , (int) CubeType.VOID);
+        SetCubeType(teamPositions[0] + new Vector3(0,0,1) , (int) CubeType.VOID);
 
 
-        // for(int c = 0; c < 10; c++) {
-        //     int voidsCount = ClustersCountByType(CubeType.VOID);
-        //     int randomVoidNumber = Random.Range(0, voidsCount);
-        //     for (int i = 0; i < CUBES_I; i++)
-        //         for (int j = 0; j < CUBES_J; j++)
-        //             for (int k = 0; k < CUBES_K; k++) 
-        //             {
-        //                 voidsCount--;
-        //                 if(voidsCount == 0) {
-        //                     GenTunnels(new Vector3(i,j,k), Random.Range(2,4), 100);
-        //                     break;
-        //                 }
-        //             }     
-        // }
-
-
-        // int nextStartCutX = (int)mapCenter.x;
-        // int nextStartCutY = (int)mapCenter.y;
-        // int nextStartCutZ = (int)mapCenter.z;
-
-
-        // int ox = (int)mapCenter.x;
-        // int oy = (int)mapCenter.y;
-        // int oz = (int)mapCenter.z;
-
-
-
-        // int c = 0;
-        // //for(int c = 0; c<2; c++) 
-        // {   
-        //     i_cut = nextStartCutX;
-        //     j_cut = nextStartCutY;
-        //     k_cut = nextStartCutZ;
-
-        //     int max_cut = 100;
-        //     int temp_max_cut = max_cut;
-
-        //     //int fromRoomToRoom = 16 ; 
-        //     int globalStepNum = 0;
-
-        //     do
-        //     {
-        //         globalStepNum ++; 
-        //         Dir dir = (Dir)Random.Range(0.0f, (int)Dir.GO_DOWN + 1); 
-
-        //         int steps = Random.Range(3, 15); 
-        //         if ((globalStepNum%4)==0)
-        //         {  
-        //             int width = Random.Range(2, steps);
-        //             int height = Random.Range(2, steps);
-        //             ProrezKoridor(steps, dir, width, height, false, false);
-        //         }
-        //         else 
-        //         {
-        //             steps = Random.Range(3, max_cut/10);
-        //             int width = c==1? 1 : Random.Range(1, 4);
-        //             int height = c==1? 1 :Random.Range(1, 4);
-
-
-        //               if(dir == Dir.GO_UP || dir == Dir.GO_DOWN) 
-        //                  steps/=2;
-
-        //             ProrezKoridor(steps, dir, width, height, true, false); 
-        //       }
-
-
-        //         max_cut --; 
-        //         oldDir = dir;
-
-
-        //         if(max_cut == temp_max_cut /2) {
-        //             nextStartCutX = i_cut;
-        //             nextStartCutY = j_cut;
-        //             nextStartCutZ = k_cut;
-        //         }
-
-        //         ox = i_cut;
-        //         oy = j_cut;
-        //         oz = k_cut;
-
-
-        //     } while (max_cut > 0);
-        // } 
-
+        SetCubeType(teamPositions[1] + new Vector3(0,-1,0) , (int) CubeType.WALL);
+        SetCubeType(teamPositions[1] + new Vector3(1,0,0) , (int) CubeType.VOID);
+        SetCubeType(teamPositions[1] + new Vector3(0,1,0) , (int) CubeType.VOID);
+        SetCubeType(teamPositions[1] + new Vector3(0,0,1) , (int) CubeType.VOID);
+        
+        
+        GenCheckpoints(10); 
         OptimizationLevel();
         //MakeLamps();
 
-        generated = true;
-
-        return playerStartPosition;
+        generated = true; 
     }
 
 
@@ -1010,7 +841,10 @@ public class LevelController : NetworkBehaviour
                     iterator++;
 
                     if (iterator >= CUBES_I * CUBES_J * CUBES_K)
+                    {
                         _builded = true;
+                         Notify?.Invoke(teamPositions);
+                    }
                 }
 
             }
@@ -1319,10 +1153,7 @@ public class LevelController : NetworkBehaviour
         _localPlayer = playerGO;
     }
 
-
-
  
-
 
     ////////////////////////// MAP MODE /////////////////////////////////////////////
 
@@ -1359,10 +1190,7 @@ public class LevelController : NetworkBehaviour
         } 
     }
 
-
-
-
-
+ 
 
     IEnumerator UpdateActualExplore()
     {
@@ -1383,13 +1211,30 @@ public class LevelController : NetworkBehaviour
                         if (!isCorrectCluster(i, j, k))
                             continue;
 
-                        if (_mapCubesGO[i, j, k] && explore[i, j, k] && _localPlayer)
+                        if (explore[i, j, k] && _mapCubesGO[i, j, k] && _localPlayer)
                         { 
                             if (Mathf.Abs(i - px) < actualDistance
                                 && Mathf.Abs(j - py) < actualDistance
                                 && Mathf.Abs(k - pz) < actualDistance) 
                                 {
+                                     
                                     _mapCubesGO[i, j, k].SetActive(true); 
+                            
+                                    // if(isCorrectCluster(i, j+1, k) && isType(i, j+1, k, CubeType.VOID))
+                                    // {
+                                    //     Color col = _mapCubesGO[i, j+1, k].GetComponent<Renderer>().material.color;
+                                    //     _mapCubesGO[i, j+1, k].GetComponent<Renderer>().material.color = new Color(col.r, col.g, col.b, 0.5f);
+                                    //     _mapCubesGO[i, j+1, k].SetActive(true); 
+                                    // }
+
+                                    // if(isCorrectCluster(i, j-1, k) && isType(i, j-1, k, CubeType.VOID))
+                                    // {
+                                    //     Color col = _mapCubesGO[i, j-1, k].GetComponent<Renderer>().material.color;
+                                    //     _mapCubesGO[i, j-1, k].GetComponent<Renderer>().material.color = new Color(col.r, col.g, col.b, 0.5f);
+                                    //     _mapCubesGO[i, j-1, k].SetActive(true); 
+                                    // }
+ 
+                                  
                                 }  
                         } 
 
@@ -1439,7 +1284,22 @@ public class LevelController : NetworkBehaviour
             explore[px, py, z] = true;
             _LineExplored(px, py, z, new Vector3Int(0,0,1));
             _LineExplored(px, py, z, new Vector3Int(0,0,-1)); 
+        }
+
+        for(int y = py, c = 0; isType(px, y, pz, CubeType.VOID) && c < actualDistance; y++, c++)  
+        {
+            explore[px, y, pz] = true;
+            _LineExplored(px, y, pz, new Vector3Int(0,0,1));
+            _LineExplored(px, y, pz, new Vector3Int(0,0,-1)); 
         } 
+        
+        for(int y = py, c = 0; isType(px, y, pz, CubeType.VOID) && c < actualDistance; y--, c++)  
+        {
+            explore[px, y, pz] = true;
+            _LineExplored(px, y, pz, new Vector3Int(0,0,1));
+            _LineExplored(px, y, pz, new Vector3Int(0,0,-1)); 
+        }     
+
             
     }
 
@@ -1450,7 +1310,7 @@ public class LevelController : NetworkBehaviour
         int y = j;
         int z = k; 
     
-        for(int c = 0; isType(x, y, z, CubeType.VOID) && c < actualDistance; c++)  
+        for(int c = 0; isType(x, y, z, CubeType.VOID) && c < 3; c++)  
         {
             explore[x, y, z] = true;
             x += dir.x;
