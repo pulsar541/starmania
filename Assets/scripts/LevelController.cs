@@ -325,8 +325,8 @@ public class LevelController : NetworkBehaviour
                 }
                 else
                 {
-                //    exitPosition = voidOverWallList[n];
-               //     cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.EXIT;
+                    exitPosition = voidOverWallList[n];
+                    cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.EXIT;
                 } 
                  
                 voidOverWallList.RemoveAt(n);
@@ -335,8 +335,8 @@ public class LevelController : NetworkBehaviour
 
       
         // place exit
-        cubes[52,50,52] = CubeType.EXIT;
-        exitPosition = new Vector3(52,50,52);
+        //cubes[52,50,52] = CubeType.EXIT;
+        //exitPosition = new Vector3(52,50,52);
           
  
     }
