@@ -25,6 +25,7 @@ public class LevelController : NetworkBehaviour
         public const int BEVEl_ZI = 7;
 
         public const int SPIKES = 8;
+        public const int EXIT = 100;
 
         public const int OUT = 1000;
     };
@@ -46,6 +47,7 @@ public class LevelController : NetworkBehaviour
     [SerializeField] private GameObject checkPointPrefab = null;
     [SerializeField] private GameObject spikesPrefab = null; 
     [SerializeField] private GameObject mapCubePrefab = null;
+    [SerializeField] private GameObject exitPrefab = null;
 
     LightManager lightManager;
 
@@ -83,6 +85,7 @@ public class LevelController : NetworkBehaviour
 
     private Vector3[] teamPositions = new Vector3[3];
 
+    public Vector3 exitPosition = new Vector3(10000,10000,10000);
 
     public bool Builded
     {
@@ -296,9 +299,8 @@ public class LevelController : NetworkBehaviour
     void GenCheckpoints(int count)
     {
         checkPoints.Clear();
-        List<Vector3> voidOverWallList = new List<Vector3>();
-        List<Vector3> voidUnderWallList = new List<Vector3>();
-
+        List<Vector3> voidOverWallList = new List<Vector3>(); 
+        
         for (int i = 0; i < CUBES_I; i++)
             for (int j = 1; j < CUBES_J - 1; j++)
                 for (int k = 0; k < CUBES_K; k++)
@@ -308,94 +310,64 @@ public class LevelController : NetworkBehaviour
                         if (cubes[i, j - 1, k] == (int)CubeType.WALL)
                         {
                             voidOverWallList.Add(new Vector3(i, j, k));
-                        }
-                        else if (cubes[i, j + 1, k] == (int)CubeType.WALL)
-                        {
-                            voidUnderWallList.Add(new Vector3(i, j, k));
-                        }
+                        } 
                     }
                 }
 
-        for (int c = 0; c < count / 2; c++)
+        for (int c = 0; c < count  ; c++)
         {
             int voidsCount = voidOverWallList.Count;
             if (voidsCount > 0)
-            {
-                int n = Random.Range(0, voidsCount);
-                checkPoints.Add(voidOverWallList[n] + new Vector3(0, -0.5f, 0));
+            {   int n = Random.Range(0, voidsCount);
+                if(c != count - 1)
+                { 
+                    checkPoints.Add(voidOverWallList[n] + new Vector3(0, -0.5f, 0)); 
+                }
+                else
+                {
+                //    exitPosition = voidOverWallList[n];
+               //     cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.EXIT;
+                } 
+                 
                 voidOverWallList.RemoveAt(n);
-            }
-            voidsCount = voidUnderWallList.Count;
-            if (voidsCount > 0)
-            {
-                int n = Random.Range(0, voidsCount);
-                checkPoints.Add(voidUnderWallList[n] + new Vector3(0, 0.5f, 0));
-                voidUnderWallList.RemoveAt(n);
-            }
+            } 
         }
+
+      
+        // place exit
+        cubes[52,50,52] = CubeType.EXIT;
+        exitPosition = new Vector3(52,50,52);
+          
+ 
     }
 
 
-    void GenSpikes(int count)
-    {
-        List<Vector3> voidOverWallList = new List<Vector3>();
+    void GenSpikes()
+    { 
         for (int i = 1; i < CUBES_I - 1; i++)
             for (int j = 1; j < CUBES_J - 1; j++)
                 for (int k = 1; k < CUBES_K - 1; k++)
                 {
-                    if (cubes[i, j, k] == (int)CubeType.VOID)
+                    if (cubes[i, j, k] == (int)CubeType.WALL
+                        && 
+                        (cubes[i-1, j, k] == (int)CubeType.VOID 
+                        || cubes[i+1, j, k] == (int)CubeType.VOID 
+                        || cubes[i, j-1, k] == (int)CubeType.VOID
+                        || cubes[i, j+1, k] == (int)CubeType.VOID 
+                        || cubes[i, j, k-1] == (int)CubeType.VOID 
+                        || cubes[i, j, k+1] == (int)CubeType.VOID 
+                        )
+                    )
                     {
-                        if (cubes[i, j - 1, k] == (int)CubeType.WALL && NeihtboursCount(i, j, k, CubeType.WALL) >= 8)
-                        {
-                            voidOverWallList.Add(new Vector3(i, j, k));
-                        }
+                         
+                        //voidOverWallList.Add(new Vector3(i, j, k));
+                        if(Random.Range(0,100) < 7)
+                            cubes[i, j, k] = (int)CubeType.SPIKES;
+                        
                     }
-                }
-        for (int c = 0; c < count; c++)
-        {
-            if (voidOverWallList.Count > 0)
-            {
-                int n = Random.Range(0, voidOverWallList.Count);
-                cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.SPIKES;
-                voidOverWallList.RemoveAt(n);
-            }
-        }
+                } 
     }
-
-
-    void GenBigRooms(int count)
-    {
-        List<Vector3> voidOverWallList = new List<Vector3>();
-
-        //   voidOverWallList.Add(LevelController.mapCenter);
-
-        for (int i = 1; i < CUBES_I - 1; i++)
-            for (int j = 1; j < CUBES_J - 1; j++)
-                for (int k = 1; k < CUBES_K - 1; k++)
-                {
-                    if (cubes[i, j, k] == (int)CubeType.VOID)
-                    {
-                        voidOverWallList.Add(new Vector3(i, j, k));
-                    }
-                }
-
-
-        Vector3 somePos = new Vector3();
-        // GenOrthoTunnels(voidOverWallList[0], 25,25,1,1,1,out somePos);
-        //  voidOverWallList.RemoveAt(0);
-
-        for (int c = 0; c < count; c++)
-        {
-            if (voidOverWallList.Count > 0)
-            {
-                int n = Random.Range(0, voidOverWallList.Count);
-
-                GenOrthoTunnels(voidOverWallList[n], 20, 20, 1, 1, 1, out somePos);
-                voidOverWallList.RemoveAt(n);
-            }
-        }
-    }
-
+ 
     void MakeLamps()
     {
         //lampPositions.Clear();
@@ -417,51 +389,51 @@ public class LevelController : NetworkBehaviour
                 }
     }
 
-    void MakeBridge(int i_cut, int j_cut, int k_cut, int length, bool direction)
-    {
+    // void MakeBridge(int i_cut, int j_cut, int k_cut, int length, bool direction)
+    // {
 
-        if (direction)
-        {
-            int ii = i_cut;
-            for (int st = 0; st < length; st++)
-                if (isCorrectCluster(ii + st, j_cut, k_cut))
-                {
-                    if (cubes[ii + st, j_cut, k_cut] == 1 && cubes[ii + st, j_cut, k_cut] == CubeType.OUT)
-                        break;
+    //     if (direction)
+    //     {
+    //         int ii = i_cut;
+    //         for (int st = 0; st < length; st++)
+    //             if (isCorrectCluster(ii + st, j_cut, k_cut))
+    //             {
+    //                 if (cubes[ii + st, j_cut, k_cut] == 1 && cubes[ii + st, j_cut, k_cut] == CubeType.OUT)
+    //                     break;
 
-                    cubes[ii + st, j_cut, k_cut] = CubeType.PLATFORM;
-                }
-            for (int st = 0; st < length; st++)
-                if (isCorrectCluster(ii - st, j_cut, k_cut))
-                {
-                    if (cubes[ii - st, j_cut, k_cut] == 1 && cubes[ii - st, j_cut, k_cut] == CubeType.OUT)
-                        break;
+    //                 cubes[ii + st, j_cut, k_cut] = CubeType.PLATFORM;
+    //             }
+    //         for (int st = 0; st < length; st++)
+    //             if (isCorrectCluster(ii - st, j_cut, k_cut))
+    //             {
+    //                 if (cubes[ii - st, j_cut, k_cut] == 1 && cubes[ii - st, j_cut, k_cut] == CubeType.OUT)
+    //                     break;
 
-                    cubes[ii - st, j_cut, k_cut] = CubeType.PLATFORM;
-                }
-        }
-        else
-        {
-            int kk = (int)k_cut;
-            for (int st = 0; st < length; st++)
-                if (isCorrectCluster(i_cut, j_cut, kk + st))
-                {
-                    if (cubes[i_cut, j_cut, kk + st] == 1 && cubes[i_cut, j_cut, kk + st] == 1)
-                        break;
-                    cubes[i_cut, j_cut, kk + st] = CubeType.PLATFORM;
-                }
-            for (int st = 0; st < length; st++)
-                if (isCorrectCluster(i_cut, j_cut, kk - st))
-                {
-                    if (cubes[i_cut, j_cut, kk - st] == 1 && cubes[i_cut, j_cut, kk - st] == CubeType.OUT)
-                        break;
-                    cubes[i_cut, j_cut, kk - st] = CubeType.PLATFORM;
-                }
+    //                 cubes[ii - st, j_cut, k_cut] = CubeType.PLATFORM;
+    //             }
+    //     }
+    //     else
+    //     {
+    //         int kk = (int)k_cut;
+    //         for (int st = 0; st < length; st++)
+    //             if (isCorrectCluster(i_cut, j_cut, kk + st))
+    //             {
+    //                 if (cubes[i_cut, j_cut, kk + st] == 1 && cubes[i_cut, j_cut, kk + st] == 1)
+    //                     break;
+    //                 cubes[i_cut, j_cut, kk + st] = CubeType.PLATFORM;
+    //             }
+    //         for (int st = 0; st < length; st++)
+    //             if (isCorrectCluster(i_cut, j_cut, kk - st))
+    //             {
+    //                 if (cubes[i_cut, j_cut, kk - st] == 1 && cubes[i_cut, j_cut, kk - st] == CubeType.OUT)
+    //                     break;
+    //                 cubes[i_cut, j_cut, kk - st] = CubeType.PLATFORM;
+    //             }
 
 
-        }
+    //     }
 
-    }
+    // }
 
 
 
@@ -479,7 +451,7 @@ public class LevelController : NetworkBehaviour
             return start;
 
 
-        bool insertSpikes = dir.y < 0 && Random.Range(0, 100) > 50 && (i_cut != mapCenter.x || k_cut != mapCenter.z);
+        bool insertSpikes = true; //dir.y < 0 && Random.Range(0, 100) > 50 && (i_cut != mapCenter.x || k_cut != mapCenter.z);
 
 
 
@@ -504,13 +476,13 @@ public class LevelController : NetworkBehaviour
                         {
                             cubes[ii, jj, kk] = isSmoothVoid ? (int)CubeType.VOID_SMOOTH : (int)CubeType.VOID;
 
-                            if (st == length - 1 && insertSpikes)
-                            {
-                                if (isCorrectCluster(ii, jj - 1, kk))
-                                {
-                                    cubes[ii, jj - 1, kk] = CubeType.SPIKES;
-                                }
-                            }
+                            //if (st == length - 1 && insertSpikes)
+                           // {
+                                // if (isCorrectCluster(ii, jj - 1, kk))
+                                // {
+                                //     cubes[ii, jj - 1, kk] = CubeType.SPIKES;
+                                // }
+                           // }
 
                             if (withBridges)
                             {
@@ -730,11 +702,16 @@ public class LevelController : NetworkBehaviour
 
         lightManager.TryInsertLight(LevelController.mapCenter, Color.white, 5);
 
-        GenOrthoTunnels(mapCenter, 3, 3, 300, 3, 8, out somePos);
-        teamPositions[0] = somePos;
-        GenOrthoTunnels(somePos, 4, 4, 300, 4, 8, out somePos);
-        teamPositions[1] = somePos;
-
+        GenOrthoTunnels(mapCenter, 3, 3, 200, 3, 7, out somePos);
+        teamPositions[0] = mapCenter;
+        GenOrthoTunnels(somePos, 4, 4, 200, 4, 7, out somePos);
+        teamPositions[1] = mapCenter;
+ 
+       
+        GenSpikes();
+        GenCheckpoints(50); 
+ 
+ 
         SetCubeType(teamPositions[0] + new Vector3(0,-1,0) , (int) CubeType.WALL);
         SetCubeType(teamPositions[0] + new Vector3(1,0,0) , (int) CubeType.VOID);
         SetCubeType(teamPositions[0] + new Vector3(0,1,0) , (int) CubeType.VOID);
@@ -745,9 +722,8 @@ public class LevelController : NetworkBehaviour
         SetCubeType(teamPositions[1] + new Vector3(1,0,0) , (int) CubeType.VOID);
         SetCubeType(teamPositions[1] + new Vector3(0,1,0) , (int) CubeType.VOID);
         SetCubeType(teamPositions[1] + new Vector3(0,0,1) , (int) CubeType.VOID);
-        
-        
-        GenCheckpoints(10); 
+               
+
         OptimizationLevel();
         //MakeLamps();
 
@@ -801,37 +777,31 @@ public class LevelController : NetworkBehaviour
             {
                 for (int k = 0; k < CUBES_K; k++)
                 { 
-                    if (cubes[i, j, k] == (int)CubeType.WALL)
-                    { 
-                        if (i == mapCenter.x && j == mapCenter.y - 1 && k == mapCenter.z)
-                        {
-                            _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab);
-                        }
-                        else
-                        {
-                            _cubeGO[i, j, k] = (GameObject)Instantiate(cubeWallPrefab);
-                        }
 
-                    }
 
-                    if (cubes[i, j, k] == (int)CubeType.PLATFORM)
+                    switch (cubes[i, j, k] )
                     {
-                        _cubeGO[i, j, k] = (GameObject)Instantiate(platformPrefab);
+                        case (int)CubeType.WALL: 
+                            if (i == mapCenter.x && j == mapCenter.y - 1 && k == mapCenter.z) 
+                                _cubeGO[i, j, k] = (GameObject)Instantiate(cubeSinglePrefab); 
+                            else 
+                                _cubeGO[i, j, k] = (GameObject)Instantiate(cubeWallPrefab); 
+                            break;
+                        case (int)CubeType.PLATFORM:     
+                            _cubeGO[i, j, k] = (GameObject)Instantiate(platformPrefab);                        
+                            break;
+                        case (int)CubeType.SPIKES:  
+                            _cubeGO[i, j, k] = (GameObject)Instantiate(spikesPrefab);  
+                            break;
+                        case (int)CubeType.EXIT:  
+                            _cubeGO[i, j, k] = (GameObject)Instantiate(exitPrefab);
+                            break;
+ 
                     }
-
-                    if (cubes[i, j, k] == (int)CubeType.SPIKES)
-                    {
-                        _cubeGO[i, j, k] = (GameObject)Instantiate(spikesPrefab);
-                    }
-
-
+  
                     if (_cubeGO[i, j, k])
                     {
-                        _cubeGO[i, j, k].transform.position = new Vector3(i, j, k);
-                        if (cubes[i, j, k] == (int)CubeType.SPIKES)
-                        {
-                            _cubeGO[i, j, k].transform.position = new Vector3(i, j - 0.55f, k);
-                        }
+                        _cubeGO[i, j, k].transform.position = new Vector3(i, j, k); 
                     }
 
                     if (_cubeGO[i, j, k])
@@ -1152,15 +1122,11 @@ public class LevelController : NetworkBehaviour
 
         _localPlayer = playerGO;
     }
-
  
 
     ////////////////////////// MAP MODE /////////////////////////////////////////////
 
-
-
-    
-    IEnumerator SwitchViewMode(bool viewMode)
+     IEnumerator SwitchViewMode(bool viewMode)
     {
         if (_localPlayer != null && generated)
         {

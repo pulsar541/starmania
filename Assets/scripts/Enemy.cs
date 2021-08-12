@@ -48,7 +48,7 @@ public class Enemy : NetworkBehaviour
         if (isServer)
         {
 
-            if(!levelController.isType( transform.position + movement, LevelController.CubeType.VOID))
+            if(levelController.isType( transform.position + movement , LevelController.CubeType.WALL))
             { 
                 int d = Random.Range(0,6);
                
@@ -67,18 +67,18 @@ public class Enemy : NetworkBehaviour
             }
             else 
             {
-                transform.position += movement * Time.deltaTime * 3.0f;
+                transform.position += movement * Time.deltaTime * 2.0f;
+               // transform.position = new Vector3(Mathf.Round(transform.position .x),  Mathf.Round(transform.position .y), Mathf.Round(transform.position .z));
             }
 
         }
  
-        foreach (var item in Physics.OverlapSphere(transform.position, transform.localScale.x ))
+        foreach (var item in Physics.OverlapSphere(transform.position, transform.localScale.x/2 ))
         {
             Player player = item.GetComponent<Player>();
             if (player)
             {
-                player.Health = 0; 
-
+                player.Health = 0;   
             } 
         }
 

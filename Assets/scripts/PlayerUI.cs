@@ -12,6 +12,8 @@ public class PlayerUI : MonoBehaviour
 
     Player player;
 
+    bool isWin = false;
+
     /// <summary>
     /// Caches the controlling Player object, subscribes to its events
     /// </summary>
@@ -21,6 +23,8 @@ public class PlayerUI : MonoBehaviour
     {
         // cache reference to the player that controls this UI object
         this.player = player;
+
+        isWin = false;
 
         // subscribe to the events raised by SyncVar Hooks on the Player object
         player.OnPlayerNumberChanged += OnPlayerNumberChanged;
@@ -37,6 +41,8 @@ public class PlayerUI : MonoBehaviour
         player.OnPlayerNumberChanged -= OnPlayerNumberChanged;
         player.OnPlayerColorChanged -= OnPlayerColorChanged;
         player.OnPlayerDataChanged -= OnPlayerDataChanged;
+
+        isWin = false; 
     }
 
     // This value can change as clients leave and join
@@ -53,9 +59,15 @@ public class PlayerUI : MonoBehaviour
 
     // This updates from Player::UpdateData via InvokeRepeating on server
     void OnPlayerDataChanged(int newPlayerData)
-    {
+    { 
+        if(newPlayerData == 1)
+            player.isWin = true;
+
         // Show the data in the UI
-        playerDataText.text = string.Format("Score: {0:000}", newPlayerData);
+        if(!player.isWin)
+            playerDataText.text = string.Format("To Exit {0:00}", newPlayerData);
+         else 
+            playerDataText.text = "FINISHED !";            
     }
 
 }

@@ -141,6 +141,12 @@ public class Fireball : NetworkBehaviour
                             player.ChangeHealthValue(player.Health - 50);  
                         else
                             player.CmdChangeHealth(player.Health - 50);   
+
+
+                        player.score++;
+                        player.CmdScoreUp(player.score);
+                        player.UpdateData();
+
  
                     }
                 } 

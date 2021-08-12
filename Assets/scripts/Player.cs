@@ -109,7 +109,7 @@ public class Player : NetworkBehaviour
     bool fireBallExpandMode = false;
 
 
-    private int score = 0;
+    public int score = 1000000;
 
     Vector3 movement = new Vector3();
 
@@ -118,6 +118,8 @@ public class Player : NetworkBehaviour
     private int _viewMode = 0;
 
     private Vector3 _spawnPosition;
+
+    public bool isWin = false;
 
     /////////////////////////////////////
 
@@ -194,7 +196,7 @@ public class Player : NetworkBehaviour
         // You dont need do this action again, will be do it only your instance on all clients
         if (!isLocalPlayer)
         {
-            score = newScore;
+            score = newScore;   
             //scorePlayer1.text = score.ToString();
             UpdateData();
         }
@@ -245,6 +247,7 @@ public class Player : NetworkBehaviour
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 20;
         Health = 100;
+        isWin = false;
 
         if (isServer)
             InitMapGenerator(netId);
@@ -299,7 +302,7 @@ public class Player : NetworkBehaviour
         // Start generating updates
         //InvokeRepeating(nameof(UpdateData), 1, 1);
 
-        ReSpawn(_spawnPosition);
+        ReSpawn();
 
 
 
@@ -328,7 +331,7 @@ public class Player : NetworkBehaviour
 
     // This only runs on the server, called from OnStartServer via InvokeRepeating
     [ServerCallback]
-    void UpdateData()
+    public void UpdateData()
     {
         playerData = score;
     }
@@ -347,7 +350,7 @@ public class Player : NetworkBehaviour
         OnPlayerColorChanged.Invoke(playerColor);
         OnPlayerDataChanged.Invoke(playerData);
 
-        ReSpawn(_spawnPosition);
+        ReSpawn();
 
         // RenderSettings.ambientLight = playerColor;
 
@@ -384,12 +387,13 @@ public class Player : NetworkBehaviour
     }
 
 
-    public void ReSpawn(Vector3 spawnPos)
+    public void ReSpawn()
     {
         Health = 100;
-        transform.position = spawnPos;
+        _charController.transform.position = _spawnPosition;
+        transform.position = _spawnPosition;
         _vertSpeed = 0;
-        transform.localEulerAngles = new Vector3(0, 0, 0);
+        _body.transform.localEulerAngles = new Vector3(0, 0, 0);
 
     }
 
@@ -402,6 +406,21 @@ public class Player : NetworkBehaviour
         return shiftMulSpeeed;
     }
 
+
+    void FixedUpdate()
+    {
+        if (hasAuthority)
+        {
+            score = (int) Vector3.Distance( transform.position, LevelController.control.exitPosition );
+                
+           // if(score == 1)
+           //     isWin = true;
+
+            CmdScoreUp(score);
+            UpdateData();
+        }
+
+    }
     // Update is called once per frame
     void Update()
     {
@@ -414,6 +433,15 @@ public class Player : NetworkBehaviour
 
         if (hasAuthority)
         {
+
+
+            // if (Health <= 0) 
+            // {   Health = 100;
+            //     StartCoroutine(WhitebeforeRespawn(0.5f));
+            //     //ReSpawn();
+            // }
+
+
             if (!SceneController.pause)
             {
                 _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
@@ -645,7 +673,7 @@ public class Player : NetworkBehaviour
                 Vector3 spawnPos = transform.position;
                 Vector3 weaponMovement = new Vector3(0, 0, 1);
                 weaponMovement = _head.transform.TransformDirection(weaponMovement);
-                spawnPos += _charController.transform.TransformDirection(new Vector3(0.035f, 0.01f, 0));
+                spawnPos += _charController.transform.TransformDirection(new Vector3(0, 0.01f, 0));
 
                 soundSourceFire.PlayOneShot(fireSound);
 
@@ -664,11 +692,11 @@ public class Player : NetworkBehaviour
               //  if ((playerNumber % 2) == 0)
                // {
                     Vector3 pos = new Vector3(px, py, pz);
-                    Vector3 spawnPos = transform.position + transform.TransformDirection(new Vector3(0, 0, 0.85f));
+                    Vector3 cableBeginPos = transform.position + _charController.transform.TransformDirection(new Vector3(0, 0, 0.85f));
+                    Vector3 cableCheckVoidPos = cableBeginPos + new Vector3(0, -0.5f, 0);
 
-
-                    if (!LevelController.control.HasCable(spawnPos) && LevelController.control.isType(pos + new Vector3(0, -1, 0), LevelController.CubeType.VOID))
-                        StartCoroutine(MakeCable(spawnPos, isServer, netId));
+                    if (!LevelController.control.HasCable(cableBeginPos) && LevelController.control.isType(cableCheckVoidPos, LevelController.CubeType.VOID))
+                        StartCoroutine(MakeCable(cableBeginPos, isServer, netId));
 
                // }
  
@@ -678,17 +706,26 @@ public class Player : NetworkBehaviour
             ///////////////////////////////////////////////////// 
             foreach (GameObject checkpointGo in levelController.checkPointsGO)
             {
-                if (dist(checkpointGo.transform.position, transform.position) < 0.5f && !pickupCheckpoints.Contains(checkpointGo.transform.position))
+                
+                if (dist(checkpointGo.transform.position, transform.position) < 0.5f /*&& !pickupCheckpoints.Contains(checkpointGo.transform.position)*/)
                 {
-                    pickupCheckpoints.Add(checkpointGo.transform.position);
+                     foreach (GameObject checkpointGo2 in levelController.checkPointsGO) 
+                     {  if(checkpointGo2 != checkpointGo)
+                          checkpointGo.GetComponent<Checkpoint>().UnsetPickup();
+                     }
+
+                    //pickupCheckpoints.Add(checkpointGo.transform.position);
                     checkpointGo.GetComponent<Checkpoint>().SetPickup();
-                    score++;
-                    CmdScoreUp(score);
-                    UpdateData();
+                    _spawnPosition = transform.position; 
                 }
             }
 
             //////////////////////////////////////
+
+
+
+           
+            
 
 
             if (IsLocal)
@@ -712,7 +749,7 @@ public class Player : NetworkBehaviour
             if (Health <= 0)
             {
               //  _vertSpeed = 0;
-                transform.localEulerAngles = new Vector3(0, _rotationY, -45);
+                _body.transform.localEulerAngles = new Vector3(0, _rotationY, -45);
 
                 foreach (Transform child in transform)
                 {
@@ -738,10 +775,10 @@ public class Player : NetworkBehaviour
             }
 
             if (Health <= 0)
-                if (Input.GetKeyDown(KeyCode.Mouse0))
-                {
-                    ReSpawn(_spawnPosition);
-                }
+            {  
+                Health = 100;
+                StartCoroutine(WhitebeforeRespawn(0.75f)); 
+            }
             //////////////////////////////////////
 
         }
@@ -950,6 +987,18 @@ public class Player : NetworkBehaviour
         }
         yield return null;
     }
+
+
+    IEnumerator WhitebeforeRespawn(float witeTime)
+    { 
+       
+        yield return new WaitForSeconds(witeTime);
+        ReSpawn();
+        yield return null;
+        
+    }
+
+
 
 
 }

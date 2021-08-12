@@ -247,6 +247,8 @@ MonoBehaviour:
     type: 3}
   mapCubePrefab: {fileID: 4179643412694862865, guid: 1331868e6fa3c3d4daf3d83e924a6cf1,
     type: 3}
+  exitPrefab: {fileID: 6554395261649706738, guid: 92cac5282fc57a44c9d25176b1a404a0,
+    type: 3}
   actualDistance: 15
   checkPoints: []
   checkPointsGO: []

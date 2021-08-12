@@ -77,7 +77,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Score: 000'
+  m_Text: "\u0421\u043C\u0435\u0440\u0442\u0435\u0439: 000"
 --- !u!1 &5152941909035078397
 GameObject:
   m_ObjectHideFlags: 0
@@ -247,4 +247,4 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Player 00
+  m_Text: "\u0418\u0433\u0440\u043E\u043A 00"

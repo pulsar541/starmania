@@ -27,4 +27,16 @@ public class Checkpoint : MonoBehaviour
           i ++;
         }
     }
+
+    public void UnsetPickup()
+    {
+        isPickup = 0;
+        int i = 0;
+        foreach(Transform child in transform) {
+          bool active = i == isPickup;
+          child.gameObject.SetActive(active);
+          i ++;
+        }
+    }
+    
 }
