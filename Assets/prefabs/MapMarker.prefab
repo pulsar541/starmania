@@ -202,11 +202,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a900dc0a24510d242be3f4e18719dcfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  zoomSpeed: 10
-  orthographicSizeMin: 1
-  orthographicSizeMax: 5
-  fovMin: 10
-  fovMax: 50
+  zoomSpeed: 0.01
+  zMin: -0.5
+  zMax: 0.01
 --- !u!1 &4273695874174241367
 GameObject:
   m_ObjectHideFlags: 0

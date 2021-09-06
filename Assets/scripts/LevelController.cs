@@ -368,7 +368,7 @@ public class LevelController : NetworkBehaviour
                 } 
     }
  
-    void MakeLamps()
+    void MakeLamps(int beetweenDist)
     {
         //lampPositions.Clear();
         //lampPositions.Add(LevelController.mapCenter);
@@ -384,7 +384,7 @@ public class LevelController : NetworkBehaviour
                     {
                         // lampPositions.Add(new Vector3(i,j,k));  
                         Vector3 lightPos = new Vector3(i, j, k);
-                        lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 5);
+                        lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), beetweenDist);
                     }
                 }
     }
@@ -570,14 +570,14 @@ public class LevelController : NetworkBehaviour
 
             // } 
 
-            if (st == length / 3 || st == 2 * length / 3)
-            {
-                Vector3 lightPos = new Vector3(i_cut, j_cut, k_cut);
-                if (isCorrectCluster(lightPos))
-                {
-                    lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 3);
-                }
-            }
+            // if (st == length / 3 || st == 2 * length / 3)
+            // {
+            //     Vector3 lightPos = new Vector3(i_cut, j_cut, k_cut);
+            //     if (isCorrectCluster(lightPos))
+            //     {
+            //         lightManager.TryInsertLight(lightPos, LightManager.GetLampColorByPosition(lightPos), 3);
+            //     }
+            // }
 
         }
 
@@ -700,7 +700,7 @@ public class LevelController : NetworkBehaviour
 
         Vector3 somePos = new Vector3(); 
 
-        lightManager.TryInsertLight(LevelController.mapCenter, Color.white, 5);
+       // lightManager.TryInsertLight(LevelController.mapCenter, Color.white, 5);
 
         GenOrthoTunnels(mapCenter, 3, 3, 200, 3, 7, out somePos);
         teamPositions[0] = mapCenter;
@@ -725,7 +725,7 @@ public class LevelController : NetworkBehaviour
                
 
         OptimizationLevel();
-        //MakeLamps();
+        MakeLamps(10);
 
         generated = true; 
     }

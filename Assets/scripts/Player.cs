@@ -181,6 +181,8 @@ public class Player : NetworkBehaviour
     GameObject playerUI = null;
     GameObject goDirLight = null;
 
+    GameObject goLocalLight = null;
+    
     static bool isCameraConnected = false;
 
     [Command]
@@ -219,6 +221,7 @@ public class Player : NetworkBehaviour
         _charController = GetComponent<CharacterController>(); 
         _mapMarkerGO = GameObject.Find("MapMarker");
         _headCameraGO = GameObject.Find("Camera");
+      
 
         foreach (Transform child in transform)
         {
@@ -258,6 +261,8 @@ public class Player : NetworkBehaviour
         {
             levelController.BindPlayerGameObject(gameObject);
             goDirLight = GameObject.Find("Directional Light");
+            goLocalLight = GameObject.Find("LocalPlayerLight");
+
             if(goDirLight)
                 goDirLight.SetActive(false);
 
@@ -272,7 +277,7 @@ public class Player : NetworkBehaviour
                 _mapMarkerGO.SetActive(false);
 
 
-           
+            
            
         }
 
@@ -457,10 +462,19 @@ public class Player : NetworkBehaviour
 
             //lightManager.SetNonDestroy(transform.position);
 
-            Color lightColor = LightManager.GetLampColorByPosition(transform.position);
+            //Color lightColor = LightManager.GetLampColorByPosition(transform.position);
 
 
-            lightManager.ActivateLight(transform.position, 3);
+            lightManager.ActivateLight(transform.position, 10);
+            goLocalLight.transform.position = transform.position;
+
+
+            // goLocalLight.GetComponent<Light>().color = new Color( 
+            //             0.5f + Mathf.Sin( 0.01f * (transform.position.x * transform.position.y) ), 
+            //             0.5f + Mathf.Sin( 0.01f * (transform.position.y * transform.position.z) ),  
+            //             0.5f + Mathf.Sin( 0.01f * (transform.position.z * transform.position.x) )
+            //         );
+
 
 
  
