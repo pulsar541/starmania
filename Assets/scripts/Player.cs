@@ -120,6 +120,11 @@ public class Player : NetworkBehaviour
     private Vector3 _spawnPosition;
 
     public bool isWin = false;
+    
+
+    Quaternion  quatAng;
+    Quaternion  quatAngHead;
+
 
     /////////////////////////////////////
 
@@ -368,10 +373,7 @@ public class Player : NetworkBehaviour
                 ren.material.color = playerColor;
                 break;
             }
-        }
-
-
-
+        } 
     }
 
     public override void OnStopClient()
@@ -455,10 +457,24 @@ public class Player : NetworkBehaviour
                 // float delta =;
 
                 _rotationY += Input.GetAxis("Mouse X") * sensivityHor;
-                transform.localEulerAngles = new Vector3(0, _rotationY, 0);
 
+               // Vector3 localEuAng = new Vector3(0, _rotationY, 0);
+                Quaternion quat =  Quaternion.Euler(0, _rotationY, 0); 
+                quatAng = Quaternion.Lerp(quatAng, quat, 15.0f*Time.deltaTime); 
+                transform.localEulerAngles = new Vector3(0, quatAng.eulerAngles.y, 0);
+  
                 //transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+
+
+                Quaternion quat2 =  Quaternion.Euler(_rotationX, 0 , 0); 
+                quatAngHead = Quaternion.Lerp(quatAngHead, quat2, 15.0f*Time.deltaTime); 
+                _head.transform.localEulerAngles = new Vector3(quatAngHead.eulerAngles.x, 0, 0);
+
+
             }
+
+      
+
 
             //lightManager.SetNonDestroy(transform.position);
 
@@ -489,8 +505,6 @@ public class Player : NetworkBehaviour
                 levelController.enemyTrigger[(int)newEnemySpawnPos.x, (int)newEnemySpawnPos.y, (int)newEnemySpawnPos.z] = false;
             }
 
-
-            _head.transform.localEulerAngles = new Vector3(_rotationX, 0, 0);
 
 
             if (Input.GetKeyUp(KeyCode.LeftShift))
@@ -648,14 +662,14 @@ public class Player : NetworkBehaviour
             }
 
             Vector3 discretePos = new Vector3(
-               Mathf.Round(transform.position.x),
-               Mathf.Round(transform.position.y),
-               Mathf.Round(transform.position.z));
+                Mathf.Round(transform.position.x),
+                Mathf.Round(transform.position.y),
+                Mathf.Round(transform.position.z)
+            );
 
             if(_mapMarkerGO)
             {
-                _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0, 1000, 0);
-    
+                _mapMarkerGO.transform.position = discretePos * 0.01f + new Vector3(0, 1000, 0); 
                 _mapMarkerGO.transform.localEulerAngles = new Vector3(
                     _head.transform.localEulerAngles.x,
                     _charController.transform.localEulerAngles.y,
@@ -668,7 +682,8 @@ public class Player : NetworkBehaviour
                 if (_charController.isGrounded && (Input.GetButton("Horizontal") || Input.GetButton("Vertical")))
                 {
                     _walkCounter += speed * (shiftMulSpeeed > 1 ? 1.5f : 1.0f) * Time.deltaTime * 5.0f;
-                    _body.transform.localPosition = new Vector3(0, Mathf.Abs(Mathf.Sin(_walkCounter)) * 0.04f, 0);
+                    _body.transform.localPosition = new Vector3(0, 0, 0);
+                    _body.transform.localPosition += new Vector3(0, (Mathf.Sin(_walkCounter*2.0f)) * 0.02f, 0);
                     _body.transform.localPosition += new Vector3(-Mathf.Cos(_walkCounter) * 0.015f, 0, 0);
                     _body.transform.localEulerAngles = new Vector3((Mathf.Sin(_walkCounter * 2)) * 0.15f, 0, (Mathf.Sin(_walkCounter)) * 0.3f);
                 }

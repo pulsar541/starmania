@@ -185,8 +185,8 @@ public class Fireball : NetworkBehaviour
                     
                         ///player.ChangeHealthValue(player.Health - 10); //отнимаем одну жизнь по аналогии с примером SyncVar 
                         NetworkServer.Destroy(gameObject); 
-                        NetworkServer.Destroy(fireballEx.gameObject);  
-                        lightManagerGO.GetComponent<LightManager>().DestroyLight(transform.position);
+                       // NetworkServer.Destroy(fireballEx.gameObject);  
+                        //lightManagerGO.GetComponent<LightManager>().DestroyLight(transform.position);
                      
                 } 
             }
