@@ -495,7 +495,7 @@ public class LevelController : NetworkBehaviour
 
                             }
 
-                            if (Random.Range(0, 1000) < 1)
+                            if (Random.Range(0, 1000) < 10)
                             {
                                 enemyTrigger[ii, jj, kk] = true;
                             }
@@ -1095,7 +1095,7 @@ public class LevelController : NetworkBehaviour
 
 
 
-    public Vector3 TryActivateEnemy(Vector3 playerPos, int radius)
+    public bool GetNearEnemySpawn(Vector3 playerPos, int radius, out Vector3 enemyPos)
     {
 
         for (int i = (int)playerPos.x - radius; i < (int)playerPos.x + radius; i++)
@@ -1109,12 +1109,14 @@ public class LevelController : NetworkBehaviour
 
                     if (enemyTrigger[i, j, k])
                     {
-                        return new Vector3(i, j, k);
+                        enemyPos = new Vector3(i, j, k);
+                        return true;
                     }
                 }
             }
         }
-        return new Vector3();
+        enemyPos =  new Vector3(-1, -1, -1);
+        return false;
     }
 
     public void BindPlayerGameObject(GameObject playerGO)
