@@ -33,7 +33,7 @@ public class Enemy : NetworkBehaviour
     void Start()
     {   
         Vector3 pos = transform.position;
-        levelController.enemyTrigger[(int)pos.x, (int)pos.y, (int)pos.z] = false;
+        levelController.enemyTrigger[Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), Mathf.RoundToInt(pos.z)] = false;
         movement = new Vector3(1,0,0); 
         Health = 100;
     }
@@ -48,7 +48,9 @@ public class Enemy : NetworkBehaviour
         if (isServer)
         {
 
-            if(levelController.isType( transform.position + movement , LevelController.CubeType.WALL))
+            if(levelController.isType( transform.position + movement * 0.5f , LevelController.CubeType.WALL)
+              //|| levelController.isType( transform.position + movement * 1.5f , LevelController.CubeType.WALL)
+            )
             { 
                 int d = Random.Range(0,6);
                
@@ -67,7 +69,7 @@ public class Enemy : NetworkBehaviour
             }
             else 
             {
-                transform.position += movement * Time.deltaTime * 2.0f;
+                transform.position += movement * Time.deltaTime * 1.0f;
                // transform.position = new Vector3(Mathf.Round(transform.position .x),  Mathf.Round(transform.position .y), Mathf.Round(transform.position .z));
             }
 
