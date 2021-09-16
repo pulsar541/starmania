@@ -87,8 +87,8 @@ public class Player : NetworkBehaviour
 
 
     //public RotationAxes axes = RotationAxes.MouseXAndY;
-    public float sensivityHor = 10.0f;
-    public float sensivityVert = 10.0f;
+    public float sensivityHor = 5.0f;
+    public float sensivityVert = 5.0f;
     public float minVert = -90.0f;
     public float maxVert = 90.0f;
 
@@ -247,7 +247,8 @@ public class Player : NetworkBehaviour
     void InitPosition(Vector3[] teamPositions)
     {
         _spawnPosition = teamPositions[TeamNumber()];
-        _charController.transform.position = teamPositions[TeamNumber()];
+        if(_charController)
+            _charController.transform.position = teamPositions[TeamNumber()];
     }
 
     void Start()
@@ -256,6 +257,7 @@ public class Player : NetworkBehaviour
         _vertSpeed = 20;
         Health = 100;
         isWin = false;
+
 
         if (isServer)
             InitMapGenerator(netId);
@@ -281,14 +283,22 @@ public class Player : NetworkBehaviour
             if(_mapMarkerGO)
                 _mapMarkerGO.SetActive(false);
 
-
-            
+ 
            
         }
 
         pickupCheckpoints = new List<Vector3>();
 
         ChangeScoreValue(0);
+
+
+        _head.transform.localEulerAngles =  transform.localEulerAngles = new Vector3(0,0,0);
+        quatAng = quatAngHead = Quaternion.identity;
+        _charController.transform.rotation = Quaternion.identity;
+        transform.rotation = Quaternion.identity;
+         _headCameraGO.transform.rotation = Quaternion.identity;
+         _rotationX = _rotationY = 0;
+
 
     }
 
@@ -452,13 +462,11 @@ public class Player : NetworkBehaviour
             if (!SceneController.pause)
             {
                 _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
-                _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert);
-
-                // float delta =;
-
+                _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert); 
                 _rotationY += Input.GetAxis("Mouse X") * sensivityHor;
+ 
 
-               // Vector3 localEuAng = new Vector3(0, _rotationY, 0);
+
                 Quaternion quat =  Quaternion.Euler(0, _rotationY, 0); 
                 quatAng = Quaternion.Lerp(quatAng, quat, 15.0f*Time.deltaTime); 
                 transform.localEulerAngles = new Vector3(0, quatAng.eulerAngles.y, 0);
@@ -494,15 +502,19 @@ public class Player : NetworkBehaviour
 
 
  
-            Vector3 newEnemySpawnPos = levelController.TryActivateEnemy(transform.position, 7);
-            if (newEnemySpawnPos.x > 0)
+            Vector3 newEnemySpawnPos ; 
+
+            if (levelController.GetNearEnemySpawn(transform.position, 7, out newEnemySpawnPos))
             {
                 if (isServer)
                     EnemySpawn(netId, newEnemySpawnPos);
                 else
                     CmdEnemySpawn(netId, newEnemySpawnPos);
 
-                levelController.enemyTrigger[(int)newEnemySpawnPos.x, (int)newEnemySpawnPos.y, (int)newEnemySpawnPos.z] = false;
+                levelController.enemyTrigger[
+                    Mathf.RoundToInt(newEnemySpawnPos.x),  
+                    Mathf.RoundToInt(newEnemySpawnPos.y),  
+                    Mathf.RoundToInt(newEnemySpawnPos.z)] = false;
             }
 
 
