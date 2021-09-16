@@ -997,10 +997,12 @@ public class Player : NetworkBehaviour
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     IEnumerator MakeCable(Vector3 startPos, bool isServer, uint netId)
-    {
+    {   
+        int maxCableLength = 3;
         Vector3 pos = startPos;
         while (  LevelController.control.isType(pos, LevelController.CubeType.VOID)
-            && !LevelController.control.HasCable(pos))
+            && !LevelController.control.HasCable(pos)
+            && maxCableLength >= 0)
         {
             LevelController.control.hasCable[(int)Mathf.Round(pos.x), (int)Mathf.Round(pos.y), (int)Mathf.Round(pos.z)] = true;
             if (isServer)
@@ -1012,6 +1014,8 @@ public class Player : NetworkBehaviour
                 CmdHangCable(netId, pos);
             }
             pos += new Vector3(0, -1, 0);
+            maxCableLength--;
+
             yield return new WaitForSeconds(0.5f);
         }
         yield return null;
