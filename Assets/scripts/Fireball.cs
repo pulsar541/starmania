@@ -151,7 +151,7 @@ public class Fireball : NetworkBehaviour
                     }
                 } 
 
-                if(_type == 1)
+                //if(_type == 1)
                 {
                     Enemy enemy = item.GetComponent<Enemy>();
                     if (enemy)
