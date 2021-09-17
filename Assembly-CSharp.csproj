@@ -47,7 +47,7 @@
      <Compile Include="Assets\scripts\LightManager.cs" />
      <Compile Include="Assets\scripts\LocalPlayerLight.cs" />
      <Compile Include="Assets\scripts\Map\CameraMap.cs" />
-     <Compile Include="Assets\scripts\Map\MapCamera.cs" />
+     <Compile Include="Assets\scripts\Map\MapMarker.cs" />
      <Compile Include="Assets\scripts\Map\MapSceneController.cs" />
      <Compile Include="Assets\scripts\Map\MarkerBody.cs" />
      <Compile Include="Assets\scripts\MapGenerator.cs" />

@@ -183,9 +183,7 @@ public class Player : NetworkBehaviour
     }
 
 
-    GameObject playerUI = null;
-    GameObject goDirLight = null;
-
+    GameObject playerUI = null;  
     GameObject goLocalLight = null;
     
     static bool isCameraConnected = false;
@@ -266,12 +264,8 @@ public class Player : NetworkBehaviour
 
         if (IsLocal)
         {
-            levelController.BindPlayerGameObject(gameObject);
-            goDirLight = GameObject.Find("Directional Light");
-            goLocalLight = GameObject.Find("LocalPlayerLight");
-
-            if(goDirLight)
-                goDirLight.SetActive(false);
+            levelController.BindPlayerGameObject(gameObject); 
+            goLocalLight = GameObject.Find("LocalPlayerLight"); 
 
             if(_headCameraGO && _head) 
             {
@@ -281,22 +275,24 @@ public class Player : NetworkBehaviour
             }
 
             if(_mapMarkerGO)
-                _mapMarkerGO.SetActive(false);
+                _mapMarkerGO.GetComponent<MapMarker>().Active(false); 
 
+            Global.localPlayerGO = gameObject;
  
-           
         }
 
         pickupCheckpoints = new List<Vector3>();
 
         ChangeScoreValue(0);
-
-
+ 
         _head.transform.localEulerAngles =  transform.localEulerAngles = new Vector3(0,0,0);
         quatAng = quatAngHead = Quaternion.identity;
         _charController.transform.rotation = Quaternion.identity;
         transform.rotation = Quaternion.identity;
-         _headCameraGO.transform.rotation = Quaternion.identity;
+
+        if(_headCameraGO)
+            _headCameraGO.transform.rotation = Quaternion.identity;
+        
          _rotationX = _rotationY = 0;
 
 
@@ -312,6 +308,20 @@ public class Player : NetworkBehaviour
     public override void OnStartServer()
     {
         base.OnStartServer();
+
+
+      
+        if(!_charController)
+            _charController = GetComponent<CharacterController>(); 
+
+        if(!_mapMarkerGO)   
+            _mapMarkerGO = GameObject.Find("MapMarker");
+
+         if(!_headCameraGO)     
+            _headCameraGO = GameObject.Find("Camera");
+      
+
+
 
         // Add this to the static Players List
         playersList.Add(this);
@@ -335,6 +345,9 @@ public class Player : NetworkBehaviour
                 break;
             }
         }
+
+
+  
 
     }
 
@@ -652,7 +665,7 @@ public class Player : NetworkBehaviour
             }
  
 
-
+            if(_mapMarkerGO && _headCameraGO)
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 _viewMode = 1 - _viewMode;
@@ -660,17 +673,16 @@ public class Player : NetworkBehaviour
                 switch (_viewMode)
                 {
                     case 0:
-                        _headCameraGO.SetActive(true);
-                        _mapMarkerGO.SetActive(false);
+                        _headCameraGO.SetActive(true); 
+                         _mapMarkerGO.GetComponent<MapMarker>().Active(false);
                         break;
                     case 1:
 
-                        _headCameraGO.SetActive(false);
-                        _mapMarkerGO.SetActive(true);
+                       
+                        _headCameraGO.SetActive(false); 
+                         _mapMarkerGO.GetComponent<MapMarker>().Active(true);
                         break;
-                }
- 
-                goDirLight.SetActive(_viewMode == 1); 
+                } 
             }
 
             Vector3 discretePos = new Vector3(

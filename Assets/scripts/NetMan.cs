@@ -55,7 +55,11 @@ public class NetMan : NetworkManager
            base.OnStopServer();
            SceneController.Pause(); 
            MapGenerator.Reset();
-           GameObject.Find("Camera").transform.parent = null;
+           
+           if(GameObject.Find("Camera") && GameObject.Find("Camera").transform.parent)
+                GameObject.Find("Camera").transform.parent = null; 
+           
+          // GameObject.Find("MapMarker").transform.parent = null;
         }
 }
  
