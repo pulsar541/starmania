@@ -733,7 +733,7 @@ public class Player : NetworkBehaviour
               //  if ((playerNumber % 2) == 0)
                // {
                     Vector3 pos = new Vector3(px, py, pz);
-                    Vector3 cableBeginPos = transform.position + _charController.transform.TransformDirection(new Vector3(0, 0, 0.85f));
+                    Vector3 cableBeginPos = transform.position + _charController.transform.TransformDirection(new Vector3(0, -0.5f, 0.85f));
                     Vector3 cableCheckVoidPos = cableBeginPos + new Vector3(0, -0.5f, 0);
 
                     if (!LevelController.control.HasCable(cableBeginPos) && LevelController.control.isType(cableCheckVoidPos, LevelController.CubeType.VOID))
@@ -1010,7 +1010,7 @@ public class Player : NetworkBehaviour
 
     IEnumerator MakeCable(Vector3 startPos, bool isServer, uint netId)
     {   
-        int maxCableLength = 3;
+        int maxCableLength = 4;
         Vector3 pos = startPos;
         while (  LevelController.control.isType(pos, LevelController.CubeType.VOID)
             && !LevelController.control.HasCable(pos)
@@ -1028,7 +1028,7 @@ public class Player : NetworkBehaviour
             pos += new Vector3(0, -1, 0);
             maxCableLength--;
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.2f);
         }
         yield return null;
     }

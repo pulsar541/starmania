@@ -159,9 +159,9 @@ public class Fireball : NetworkBehaviour
                         if (enemy.netId != owner)
                         {
                             if(isServer)
-                                enemy.ChangeHealth(enemy.Health - 20); 
+                                enemy.ChangeHealth(enemy.Health - 10); 
                             else  
-                                enemy.CmdChangeHealth(enemy.Health - 20);  
+                                enemy.CmdChangeHealth(enemy.Health - 10);  
 
                             NetworkServer.Destroy(gameObject);            
                         }

@@ -65,7 +65,7 @@ public class PlayerUI : MonoBehaviour
 
         // Show the data in the UI
         if(!player.isWin)
-            playerDataText.text = string.Format("To Exit {0:00}", newPlayerData);
+            playerDataText.text = string.Format("To target {0:00}", newPlayerData);
          else 
             playerDataText.text = "FINISHED !";            
     }

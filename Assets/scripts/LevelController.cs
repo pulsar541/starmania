@@ -132,6 +132,11 @@ public class LevelController : NetworkBehaviour
     }
 
 
+    float squareDist(Vector3 a, Vector3 b)
+    {
+        return (Mathf.Pow(a.x - b.x, 2) + Mathf.Pow(a.y - b.y, 2) + Mathf.Pow(a.z - b.z, 2));
+    }
+
     public bool isType(int i, int j, int k, int cubeType)
     {
         return isCorrectCluster(i, j, k) && cubes[i, j, k] == cubeType;
@@ -314,24 +319,31 @@ public class LevelController : NetworkBehaviour
                     }
                 }
 
+        Vector3 maxFarCheckpointPosition = LevelController.mapCenter; 
+        float maxQuadist = 0;
         for (int c = 0; c < count  ; c++)
         {
             int voidsCount = voidOverWallList.Count;
             if (voidsCount > 0)
             {   int n = Random.Range(0, voidsCount);
-                if(c != count - 1)
-                { 
-                    checkPoints.Add(voidOverWallList[n] + new Vector3(0, -0.5f, 0)); 
-                }
-                else
-                {
-                    exitPosition = voidOverWallList[n];
-                    cubes[(int)voidOverWallList[n].x, (int)voidOverWallList[n].y, (int)voidOverWallList[n].z] = CubeType.EXIT;
-                } 
+
                  
+                checkPoints.Add(voidOverWallList[n] + new Vector3(0, -0.5f, 0)); 
+   
+                float tmpQDist = squareDist( LevelController.mapCenter, voidOverWallList[n]);
+
+                if( tmpQDist > maxQuadist) {
+                    maxQuadist = tmpQDist;
+                    maxFarCheckpointPosition = voidOverWallList[n];
+                }
+
                 voidOverWallList.RemoveAt(n);
             } 
         }
+
+
+        exitPosition = maxFarCheckpointPosition;
+        cubes[(int)exitPosition.x, (int)exitPosition.y, (int)exitPosition.z] = CubeType.EXIT;
 
       
         // place exit
