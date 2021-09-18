@@ -29,7 +29,7 @@ Enter		- Возврат в режим игры
 
 Настройки
 ---------
-Путь к настройкам:  %userprofile%\AppData\LocalLow\Labyrinth\settings.json
+Путь к настройкам:  %userprofile%\AppData\LocalLow\PulsarUniverse\Labyrinth\settings.json
 
 
 Правила и механика
