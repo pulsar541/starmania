@@ -68,6 +68,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  fireballPrefab: {fileID: 3461811425147930063, guid: 2c0409f07a2723f4e9c7754234d7f0c4,
+    type: 3}
   Health: 100
 --- !u!114 &2708333816057773887
 MonoBehaviour:

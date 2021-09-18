@@ -170,9 +170,9 @@ public class Fireball : NetworkBehaviour
 
                 Cable cable = item.GetComponent<Cable>();
                 if(cable)
-                {   //Vector3 cablePos = cable.gameObject.transform.position;
-                    //LevelController.control.hasCable[Mathf.RoundToInt(cablePos.x), Mathf.RoundToInt(cablePos.y), Mathf.RoundToInt(cablePos.z)] = false;
-                   // NetworkServer.Destroy(cable.gameObject); 
+                {   Vector3 cablePos = cable.gameObject.transform.position;
+                    LevelController.control.hasCable[Mathf.RoundToInt(cablePos.x), Mathf.RoundToInt(cablePos.y), Mathf.RoundToInt(cablePos.z)] = false;
+                    NetworkServer.Destroy(cable.gameObject); 
                     NetworkServer.Destroy(gameObject);  
                 }
             }
@@ -196,8 +196,10 @@ public class Fireball : NetworkBehaviour
                 Cube cube = item.GetComponent<Cube>();
                 if(cube) { 
                     if(_type == 0)
-                        Expand(); 
-
+                        Expand();  
+                    else {
+                        NetworkServer.Destroy(gameObject);
+                    }
                 }
 
             } 
@@ -209,6 +211,9 @@ public class Fireball : NetworkBehaviour
                 {
                     if(_type == 0)
                         Expand(); 
+                    else {
+                        NetworkServer.Destroy(gameObject);
+                    }
                 }
              }
 

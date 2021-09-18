@@ -13,6 +13,7 @@ public class Enemy : NetworkBehaviour
     private GameObject _localPlayer;
 
 
+    [SerializeField] private GameObject fireballPrefab = null;
 
     int dir = 0;
     [SyncVar(hook = nameof(SyncDir))]  
@@ -23,6 +24,8 @@ public class Enemy : NetworkBehaviour
     [SyncVar(hook = nameof(SyncHealth))]  
     int _SyncHealth;
  
+
+    float _msek = 0;
 
     void Awake()
     {
@@ -89,7 +92,53 @@ public class Enemy : NetworkBehaviour
       //  if(_localPlayer && Vector3.Distance(_localPlayer.transform.position, transform.position) > 3)
        //     gameObject.SetActive(false);
        // else 
-         //   gameObject.SetActive(true);            
+         //   gameObject.SetActive(true);     
+
+ 
+
+        foreach (var item in Physics.OverlapSphere(transform.position, 10 ))
+        {
+            Player player = item.GetComponent<Player>();
+            if (player)
+            { 
+                if(isServer)
+                {
+                    _msek += Time.deltaTime;
+                    if(_msek > 3.0f)
+                    { 
+                        Vector3 weaponMovement = Vector3.Normalize(item.transform.position - transform.position);  
+
+                        _msek = 0;
+                        if (isServer)
+                            Fire(netId, transform.position, weaponMovement);
+                        else
+                            CmdFire(netId, transform.position, weaponMovement); 
+
+                    }       
+                }
+ 
+            } 
+        } 
+
+    }
+
+
+    
+    [Server]
+    public void Fire(uint owner, Vector3 startPos, Vector3 dir)
+    { 
+            GameObject fireballGo = Instantiate(fireballPrefab, startPos, Quaternion.identity); //Создаем локальный объект пули на сервере
+            NetworkServer.Spawn(fireballGo); //отправляем информацию о сетевом объекте всем игрокам.
+            Vector3 fbMovement = dir.normalized * 6.0f + movement;
+            fireballGo.GetComponent<Fireball>().Init(owner, startPos, fbMovement, 1); //инициализируем поведение пули
+                                                                                      //    _lastFireballGo = fireballGo; 
+    }
+
+
+    [Command]
+    public void CmdFire(uint owner, Vector3 startPos, Vector3 dir)
+    {
+        Fire(owner, startPos, dir);
     }
 
     void FixedUpdate()

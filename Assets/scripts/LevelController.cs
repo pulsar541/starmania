@@ -507,7 +507,7 @@ public class LevelController : NetworkBehaviour
 
                             }
 
-                            if (Random.Range(0, 1000) < 10)
+                            if (Random.Range(0, 1000) < 3)
                             {
                                 enemyTrigger[ii, jj, kk] = true;
                             }

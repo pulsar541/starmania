@@ -295,7 +295,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: v0.24 developed by -_-_Pulsar_-_-
+  m_Text: v0.25 developed by -_-_Pulsar_-_-
 --- !u!222 &449331349
 CanvasRenderer:
   m_ObjectHideFlags: 0
