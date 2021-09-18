@@ -27,14 +27,16 @@ public class Player : NetworkBehaviour
     int _SyncScore;
 
 
+    public string Name;
+    [SyncVar(hook = nameof(SyncName))] //задаем метод, который будет выполняться при синхронизации переменной
+    string _SyncName;
+
 
     public bool IsLocal
     {
         get { return isLocalPlayer; }
     }
-
-    public List<Vector3> Vector3Vars;
-
+     
 
     private List<Vector3> pickupCheckpoints;
 
@@ -87,8 +89,8 @@ public class Player : NetworkBehaviour
 
 
     //public RotationAxes axes = RotationAxes.MouseXAndY;
-    public float sensivityHor = 5.0f;
-    public float sensivityVert = 5.0f;
+    private float sensivityHor = 4.0f;
+    private float sensivityVert = 4.0f;
     public float minVert = -90.0f;
     public float maxVert = 90.0f;
 
@@ -251,6 +253,7 @@ public class Player : NetworkBehaviour
 
     void Start()
     {
+ 
         //  _rigidBody = GetComponent<Rigidbody>(); 
         _vertSpeed = 20;
         Health = 100;
@@ -285,16 +288,15 @@ public class Player : NetworkBehaviour
 
         ChangeScoreValue(0);
  
-        _head.transform.localEulerAngles =  transform.localEulerAngles = new Vector3(0,0,0);
-        quatAng = quatAngHead = Quaternion.identity;
-        _charController.transform.rotation = Quaternion.identity;
-        transform.rotation = Quaternion.identity;
 
-        if(_headCameraGO)
-            _headCameraGO.transform.rotation = Quaternion.identity;
-        
-         _rotationX = _rotationY = 0;
-
+        if (isServer)
+        {
+            ChangeNameValue(Settings.playerName);
+        }
+        else
+        {
+            CmdChangeName(Settings.playerName);
+        }
 
     }
 
@@ -333,8 +335,7 @@ public class Player : NetworkBehaviour
         //InvokeRepeating(nameof(UpdateData), 1, 1);
 
         ReSpawn();
-
-
+ 
 
         foreach (Transform child in transform)
         {
@@ -347,7 +348,15 @@ public class Player : NetworkBehaviour
         }
 
 
-  
+       
+        if (isServer)
+        {
+            ChangeNameValue(Settings.playerName);
+        }
+        else
+        {
+            CmdChangeName(Settings.playerName);
+        } 
 
     }
 
@@ -397,6 +406,18 @@ public class Player : NetworkBehaviour
                 break;
             }
         } 
+
+             
+        if (isServer)
+        {
+            ChangeNameValue(Settings.playerName);
+        }
+        else
+        {
+            CmdChangeName(Settings.playerName);
+        }
+
+
     }
 
     public override void OnStopClient()
@@ -419,11 +440,29 @@ public class Player : NetworkBehaviour
 
     public void ReSpawn()
     {
+        sensivityHor = Settings.mouseSensivity;
+        sensivityVert = Settings.mouseSensivity;
+        // Name = Settings.playerName;
+ 
+
         Health = 100;
         _charController.transform.position = _spawnPosition;
         transform.position = _spawnPosition;
         _vertSpeed = 0;
         _body.transform.localEulerAngles = new Vector3(0, 0, 0);
+
+        _head.transform.localEulerAngles =  transform.localEulerAngles = new Vector3(0,0,0);
+        quatAng = quatAngHead = Quaternion.identity;
+        _charController.transform.rotation = Quaternion.identity;
+        transform.rotation = Quaternion.identity;
+
+        if(_headCameraGO)
+            _headCameraGO.transform.rotation = Quaternion.identity;
+        
+         _rotationX = _rotationY = 0;
+
+
+        
 
     }
 
@@ -984,6 +1023,24 @@ public class Player : NetworkBehaviour
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+    [Server] //обозначаем, что этот метод будет вызываться и выполняться только на сервере
+    public void ChangeNameValue(string newValue)
+    {
+        _SyncName = newValue;
+    }
+
+    void SyncName(string oldValue, string newValue) //обязательно делаем два значения - старое и новое. 
+    {
+        Name = newValue;
+    }
+
+    [Command] //обозначаем, что этот метод должен будет выполняться на сервере по запросу клиента
+    public void CmdChangeName(string newValue) //обязательно ставим Cmd в начале названия метода
+    {
+        ChangeNameValue(newValue); //переходим к непосредственному изменению переменной
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     [Server]

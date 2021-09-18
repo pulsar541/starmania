@@ -19,6 +19,6 @@ public class LocalPlayerLight : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        light.intensity = transform.position.y / 100.0f; 
+        light.intensity = Mathf.Clamp(transform.position.y / 50.0f, 0.0f, 1.0f); 
     }
 }

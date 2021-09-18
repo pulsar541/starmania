@@ -200,7 +200,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6285827040704903763
 Transform:
   m_ObjectHideFlags: 0
@@ -647,8 +647,8 @@ MonoBehaviour:
   terminalVelocity: -20
   deathVertSpeed: -9
   minFall: -1.5
-  sensivityHor: 9
-  sensivityVert: 9
+  sensivityHor: 5
+  sensivityVert: 5
   minVert: -90
   maxVert: 90
   score: 1000000

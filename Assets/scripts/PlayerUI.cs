@@ -48,7 +48,7 @@ public class PlayerUI : MonoBehaviour
     // This value can change as clients leave and join
     void OnPlayerNumberChanged(int newPlayerNumber)
     {
-        playerNameText.text = string.Format("Player {0:00}", newPlayerNumber);
+        playerNameText.text = string.Format(player.Name + " {0:00}", newPlayerNumber);
     }
 
     // Random color set by Player::OnStartServer
