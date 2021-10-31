@@ -985,6 +985,34 @@ public class LevelController : NetworkBehaviour
 
     }
 
+     
+
+    public void ResetActualCubes()
+    {
+        // StartCoroutine(ResetActualCubesAsync());
+
+        if (_localPlayer != null && generated)
+        {
+            for (int i = 0; i < CUBES_I; i++)
+            {
+                for (int j = 0; j < CUBES_J; j++)
+                {
+                    for (int k = 0; k < CUBES_K; k++)
+                    {
+                        if (_cubeGO[i, j, k])
+                        {
+                            _cubeGO[i, j, k].SetActive(false);
+                            BoxCollider boxCollider = _cubeGO[i, j, k].GetComponent<BoxCollider>();
+                            if(boxCollider)
+                                boxCollider.enabled = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        StartCoroutine(UpdateActualCubes());
+    }
 
     IEnumerator UpdateActualCubes()
     {
@@ -996,12 +1024,12 @@ public class LevelController : NetworkBehaviour
             int py = (int)playerPos.y;
             int pz = (int)playerPos.z;
 
-
-            for (int i = (int)px - actualDistance - 5; i < (int)px + actualDistance + 5; i++)
+            int actualDistSuper =  actualDistance * 3/2;
+            for (int i = (int)px - actualDistSuper; i < (int)px + actualDistSuper; i++)
             {
-                for (int j = (int)py - actualDistance - 5; j < (int)py + actualDistance + 5; j++)
+                for (int j = (int)py - actualDistSuper; j < (int)py +actualDistSuper; j++)
                 {
-                    for (int k = (int)pz - actualDistance - 5; k < (int)pz + actualDistance + 5; k++)
+                    for (int k = (int)pz - actualDistSuper; k < (int)pz + actualDistSuper; k++)
                     {
                         if (!isCorrectCluster(i, j, k))
                             continue;
@@ -1015,15 +1043,21 @@ public class LevelController : NetworkBehaviour
 
                             {
                                 _cubeGO[i, j, k].SetActive(true);
-                                // Vector3 cameraRelative = _player.transform.InverseTransformPoint(_cubeGO[i, j, k].transform.position);
-                                // if (cameraRelative.z > -3)
-                                // {
-                                //     _cubeGO[i, j, k].SetActive(true);
-                                // }
-                                // else
-                                // {
-                                //     _cubeGO[i, j, k].SetActive(false);
-                                // }
+                                 Vector3 cameraRelative = _localPlayer.transform.InverseTransformPoint(_cubeGO[i, j, k].transform.position);
+
+                                BoxCollider boxCollider = _cubeGO[i, j, k].GetComponent<BoxCollider>();
+                                 if (cameraRelative.z > -3)
+                                 {  
+                                    _cubeGO[i, j, k].SetActive(true);
+                                    if(boxCollider)
+                                        boxCollider.enabled = true;
+                                 }
+                                 else
+                                 {
+                                    _cubeGO[i, j, k].SetActive(false);
+                                    if (boxCollider)
+                                        boxCollider.enabled = false;
+                                 }
 
                                 // if (Mathf.Abs(i - px) < actualDistance / 2
                                 //      && Mathf.Abs(j - py) < actualDistance / 2
@@ -1093,10 +1127,17 @@ public class LevelController : NetworkBehaviour
                             continue;
 
                         if (_cubeGO[i, j, k])
+                        {
                             _cubeGO[i, j, k].SetActive(true);
+                            BoxCollider boxCollider = _cubeGO[i, j, k].GetComponent<BoxCollider>();
+                            if (boxCollider)
+                                boxCollider.enabled = true;
+                        }
 
                         if (_lampGO[i, j, k])
                             _lampGO[i, j, k].SetActive(true);
+
+
 
                     }
                 }

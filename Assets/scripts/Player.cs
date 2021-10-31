@@ -461,8 +461,7 @@ public class Player : NetworkBehaviour
         
          _rotationX = _rotationY = 0;
 
-
-        
+        LevelController.control.ResetActualCubes();
 
     }
 

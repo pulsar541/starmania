@@ -25,7 +25,12 @@ public class Enemy : NetworkBehaviour
     int _SyncHealth;
  
 
-    float _msek = 0;
+    float _changeModeInterval = 0;
+
+    bool _stopingMode = false;
+
+
+    float __fireInterval = 0;
 
     void Awake()
     {
@@ -72,7 +77,8 @@ public class Enemy : NetworkBehaviour
             }
             else 
             {
-                transform.position += movement * Time.deltaTime * 1.0f;
+                if(!_stopingMode)
+                    transform.position += movement * Time.deltaTime * 1.0f;
                // transform.position = new Vector3(Mathf.Round(transform.position .x),  Mathf.Round(transform.position .y), Mathf.Round(transform.position .z));
             }
 
@@ -96,29 +102,52 @@ public class Enemy : NetworkBehaviour
 
  
 
+        Vector3 playerPos = new Vector3();
         foreach (var item in Physics.OverlapSphere(transform.position, 10 ))
         {
             Player player = item.GetComponent<Player>();
             if (player)
             { 
-                if(isServer)
-                {
-                    _msek += Time.deltaTime;
-                    if(_msek > 3.0f)
+                
+               // if(isServer)
+              //  {
+                    _changeModeInterval += Time.deltaTime;
+                    if(_changeModeInterval > 5.0f)
                     { 
-                        Vector3 weaponMovement = Vector3.Normalize(item.transform.position - transform.position);  
+                        _changeModeInterval = 0; 
+                        _stopingMode = !_stopingMode; 
+                    }
 
-                        _msek = 0;
-                        if (isServer)
-                            Fire(netId, transform.position, weaponMovement);
-                        else
-                            CmdFire(netId, transform.position, weaponMovement); 
-
-                    }       
-                }
+                    if (_stopingMode)
+                    {
+                        if (item.GetComponent<CharacterController>())
+                            playerPos = item.GetComponent<CharacterController>().transform.position;
+                    }
+             //   }
  
             } 
         } 
+
+ 
+
+        if(_stopingMode)
+        {
+            __fireInterval += Time.deltaTime;
+            if(__fireInterval > 1.0f)
+            { 
+                Vector3 weaponMovement = Vector3.Normalize(playerPos - transform.position);  
+
+                __fireInterval = 0;
+
+                if (isServer)
+                    Fire(netId, transform.position, weaponMovement);
+                else
+                    CmdFire(netId, transform.position, weaponMovement); 
+
+            }      
+        } 
+
+
 
     }
 

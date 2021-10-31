@@ -7,7 +7,20 @@ public class SceneController : MonoBehaviour
 {
     public static bool pause = false;
 
-    public static SceneController control;
+
+     
+
+    public static SceneController Instance
+    {
+        get
+        {
+            return _instance;
+        }
+    }
+
+    private static SceneController _instance = null;
+
+
     GameObject goDirLight;
 
      
@@ -15,16 +28,27 @@ public class SceneController : MonoBehaviour
    // public static int viewMode = ViewModes.ViewModeFPS; 
 
     void Awake()
-    {
-        goDirLight = GameObject.Find("Directional Light");
-        control = this;
+    {      
+        if(_instance)
+        {
+            DestroyImmediate(gameObject);
+            return;
+        }
+        _instance = this;
         DontDestroyOnLoad(transform.gameObject);
+         
+
+        goDirLight = GameObject.Find("Directional Light");  
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        Settings.Init();  
+        Settings.Init();
+         
+        //#if SHOW_DEBUG_MESSAGES
+        //Debug.Log ("SceneCOntroller started");
+        //#endif
     }
 
     public static void Pause()

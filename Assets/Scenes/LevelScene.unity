@@ -432,7 +432,7 @@ MonoBehaviour:
     type: 3}
   exitPrefab: {fileID: 799954120342096204, guid: 27f5c693ff017144f9fe9604c59a9633,
     type: 3}
-  actualDistance: 15
+  actualDistance: 10
   checkPoints: []
   checkPointsGO: []
   buildProcessActive: 0

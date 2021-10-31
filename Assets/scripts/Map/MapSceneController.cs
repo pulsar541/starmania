@@ -15,7 +15,7 @@ public class MapSceneController : MonoBehaviour
     void Awake()
     {
         levelController = LevelController.control;
-        sceneController = SceneController.control;
+        sceneController = SceneController.Instance;
     } 
     // Start is called before the first frame update
     void Start()
