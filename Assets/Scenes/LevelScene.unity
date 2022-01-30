@@ -295,7 +295,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: v0.25 developed by -_-_Pulsar_-_-
+  m_Text: v0.26 developed by -_-_Pulsar_-_-
 --- !u!222 &449331349
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -429,6 +429,8 @@ MonoBehaviour:
   spikesPrefab: {fileID: 4216154768866653329, guid: c7a11cd3a991d384d802b770b5a223ef,
     type: 3}
   mapCubePrefab: {fileID: 4179643412694862865, guid: 1331868e6fa3c3d4daf3d83e924a6cf1,
+    type: 3}
+  mapUCubePrefab: {fileID: 4179643412694862865, guid: f7603b661c0bf8a4c93c379fe87e40ac,
     type: 3}
   exitPrefab: {fileID: 799954120342096204, guid: 27f5c693ff017144f9fe9604c59a9633,
     type: 3}

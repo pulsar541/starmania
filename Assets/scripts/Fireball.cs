@@ -191,7 +191,7 @@ public class Fireball : NetworkBehaviour
                 } 
             }
 
-            foreach (var item in Physics.OverlapBox(transform.position, transform.localScale/2, Quaternion.identity))
+            foreach (var item in Physics.OverlapBox(transform.position, transform.localScale, Quaternion.identity))
             { 
                 Cube cube = item.GetComponent<Cube>();
                 if(cube) { 

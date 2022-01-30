@@ -124,9 +124,9 @@ public class Player : NetworkBehaviour
     public bool isWin = false;
     
 
-    Quaternion  quatAng;
-    Quaternion  quatAngHead;
-
+   // Quaternion  quatAng;
+  // Quaternion  quatAngHead;
+  
 
     /////////////////////////////////////
 
@@ -452,12 +452,12 @@ public class Player : NetworkBehaviour
         _body.transform.localEulerAngles = new Vector3(0, 0, 0);
 
         _head.transform.localEulerAngles =  transform.localEulerAngles = new Vector3(0,0,0);
-        quatAng = quatAngHead = Quaternion.identity;
-        _charController.transform.rotation = Quaternion.identity;
-        transform.rotation = Quaternion.identity;
+       // quatAng = quatAngHead = Quaternion.identity;
+       // _charController.transform.rotation = Quaternion.identity;
+       // transform.rotation = Quaternion.identity;
 
-        if(_headCameraGO)
-            _headCameraGO.transform.rotation = Quaternion.identity;
+       // if(_headCameraGO)
+        //    _headCameraGO.transform.rotation = Quaternion.identity;
         
          _rotationX = _rotationY = 0;
 
@@ -495,7 +495,7 @@ public class Player : NetworkBehaviour
       //  if (!isLocalPlayer)
          //   return;
 
-        //  if (SceneController.pause)
+        //  if (SceneController.pause) 
         //       return;
 
 
@@ -515,24 +515,28 @@ public class Player : NetworkBehaviour
                 _rotationX -= Input.GetAxis("Mouse Y") * sensivityVert;
                 _rotationX = Mathf.Clamp(_rotationX, minVert, maxVert); 
                 _rotationY += Input.GetAxis("Mouse X") * sensivityHor;
- 
+
+                /*
+
+                                Quaternion quat =  Quaternion.Euler(0, _rotationY, 0); 
+                                quatAng = Quaternion.Lerp(quatAng, quat, 15.0f*Time.deltaTime); 
+                                transform.localEulerAngles = new Vector3(0, quatAng.eulerAngles.y, 0);
 
 
-                Quaternion quat =  Quaternion.Euler(0, _rotationY, 0); 
-                quatAng = Quaternion.Lerp(quatAng, quat, 15.0f*Time.deltaTime); 
-                transform.localEulerAngles = new Vector3(0, quatAng.eulerAngles.y, 0);
-  
-                //transform.localEulerAngles = new Vector3(_rotationX, _rotationY, 0);
+                                Quaternion quat2 =  Quaternion.Euler(_rotationX, 0 , 0); 
+                                quatAngHead = Quaternion.Lerp(quatAngHead, quat2, 15.0f*Time.deltaTime); 
+                                _head.transform.localEulerAngles = new Vector3(quatAngHead.eulerAngles.x, 0, 0);
+                */
 
 
-                Quaternion quat2 =  Quaternion.Euler(_rotationX, 0 , 0); 
-                quatAngHead = Quaternion.Lerp(quatAngHead, quat2, 15.0f*Time.deltaTime); 
-                _head.transform.localEulerAngles = new Vector3(quatAngHead.eulerAngles.x, 0, 0);
+                transform.localEulerAngles = new Vector3(0, _rotationY, 0);
+                _head.transform.localEulerAngles = new Vector3(_rotationX, 0, 0);
+
 
 
             }
 
-      
+
 
 
             //lightManager.SetNonDestroy(transform.position);

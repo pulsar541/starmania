@@ -47,6 +47,7 @@ public class LevelController : NetworkBehaviour
     [SerializeField] private GameObject checkPointPrefab = null;
     [SerializeField] private GameObject spikesPrefab = null; 
     [SerializeField] private GameObject mapCubePrefab = null;
+    [SerializeField] private GameObject mapUCubePrefab = null;
     [SerializeField] private GameObject exitPrefab = null;
 
     LightManager lightManager;
@@ -57,6 +58,7 @@ public class LevelController : NetworkBehaviour
     private GameObject[,,] _lampGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];
 
     public GameObject[,,] _mapCubesGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];
+    public GameObject[,,] _mapUCubesGO = new GameObject[CUBES_I, CUBES_J, CUBES_K];
 
 
     public bool[,,] enemyTrigger = new bool[CUBES_I, CUBES_J, CUBES_K];
@@ -64,7 +66,8 @@ public class LevelController : NetworkBehaviour
     public bool[,,] hasCable = new bool[CUBES_I, CUBES_J, CUBES_K];
 
     public bool[,,] explore = new bool[CUBES_I, CUBES_J, CUBES_K];
-
+    public bool[,,] almostExplore = new bool[CUBES_I, CUBES_J, CUBES_K];
+    
     public List<Vector3> checkPoints = new List<Vector3>();
     public List<GameObject> checkPointsGO = new List<GameObject>();
 
@@ -247,7 +250,11 @@ public class LevelController : NetworkBehaviour
                     if(_mapCubesGO[i, j, k] != null)
                         Destroy(_mapCubesGO[i, j, k]); 
 
+                    if(_mapUCubesGO[i, j, k] != null)
+                        Destroy(_mapUCubesGO[i, j, k]); 
+
                     explore[i, j, k] = false;
+                    almostExplore[i, j, k] = false;
                     hasCable[i, j, k] = false;                   
                     
                 }
@@ -875,6 +882,12 @@ public class LevelController : NetworkBehaviour
                       _mapCubesGO[i, j, k] = (GameObject)Instantiate(mapCubePrefab); 
                       _mapCubesGO[i, j, k].transform.position = 0.01f * (new Vector3(i, j, k)) + new Vector3(0,1000,0);
                       _mapCubesGO[i, j, k].SetActive(false);
+
+                      _mapUCubesGO[i, j, k] = (GameObject)Instantiate(mapUCubePrefab);
+                      _mapUCubesGO[i, j, k].transform.position = 0.01f * (new Vector3(i, j, k)) + new Vector3(0,1000,0);
+                      _mapUCubesGO[i, j, k].SetActive(false);
+
+
                     }
    
                     iterator++; 
@@ -1201,6 +1214,7 @@ public class LevelController : NetworkBehaviour
                         if (cubes[i, j, k] == CubeType.VOID) {
                             _cubeGO[i,j,k].SetActive(!viewMode);
                             _mapCubesGO[i, j, k].SetActive(viewMode);
+                            _mapUCubesGO[i, j, k].SetActive(viewMode);
                         }
                     }
                 }
@@ -1232,15 +1246,28 @@ public class LevelController : NetworkBehaviour
                         if (!isCorrectCluster(i, j, k))
                             continue;
 
-                        if (explore[i, j, k] && _mapCubesGO[i, j, k] && _localPlayer)
+                        if (_localPlayer)
                         { 
                             if (Mathf.Abs(i - px) < actualDistance
                                 && Mathf.Abs(j - py) < actualDistance
                                 && Mathf.Abs(k - pz) < actualDistance) 
                                 {
-                                     
-                                    _mapCubesGO[i, j, k].SetActive(true); 
-                            
+
+                                    if (almostExplore[i, j, k] && _mapUCubesGO[i, j, k])
+                                    {   
+                                        _mapUCubesGO[i, j, k].SetActive(true);    
+                                    } 
+
+                                    if (explore[i, j, k] && _mapCubesGO[i, j, k])
+                                    {
+                                        _mapCubesGO[i, j, k].SetActive(true);
+
+                                        if(_mapUCubesGO[i, j, k])
+                                            _mapUCubesGO[i, j, k].SetActive(false);
+
+                                    } 
+
+                              
                                     // if(isCorrectCluster(i, j+1, k) && isType(i, j+1, k, CubeType.VOID))
                                     // {
                                     //     Color col = _mapCubesGO[i, j+1, k].GetComponent<Renderer>().material.color;
@@ -1259,7 +1286,9 @@ public class LevelController : NetworkBehaviour
                                 }  
                         } 
 
+                       
                     }
+                     
 
                 }
                 yield return null;
@@ -1319,9 +1348,11 @@ public class LevelController : NetworkBehaviour
             explore[px, y, pz] = true;
             _LineExplored(px, y, pz, new Vector3Int(0,0,1));
             _LineExplored(px, y, pz, new Vector3Int(0,0,-1)); 
-        }     
+        }
 
-            
+        if (isCorrectCluster(px, py, pz))
+            explore[px, py, pz] = true; 
+
     }
 
 
@@ -1334,6 +1365,26 @@ public class LevelController : NetworkBehaviour
         for(int c = 0; isType(x, y, z, CubeType.VOID) && c < 3; c++)  
         {
             explore[x, y, z] = true;
+               
+                for (int ii = x - 1; ii <= x + 1; ii++)
+                for (int jj = y - 1; jj <= y + 1; jj++)
+                for (int kk = z - 1; kk <= z + 1; kk++)
+                    {
+                        if (!isCorrectCluster(ii, jj, kk))
+                            continue;
+
+                        if (isType(ii, jj, kk, CubeType.VOID) && !explore[ii, jj, kk] )
+                        {
+                            almostExplore[ii, jj, kk] = true;
+                            ii = x + 2;
+                            jj = y + 2;
+                            kk = z + 2;
+                            break;
+                        } 
+                    }
+
+           // explore[x, y, z] = true;
+               
             x += dir.x;
             y += dir.y;
             z += dir.z;

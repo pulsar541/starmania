@@ -70,7 +70,6 @@
     <Compile Include="Assets\scripts\Fireball.cs" />
     <Compile Include="Assets\scripts\FireballEx.cs" />
     <Compile Include="Assets\scripts\Global.cs" />
-    <Compile Include="Assets\scripts\IListener.cs" />
     <Compile Include="Assets\scripts\LevelController.cs" />
     <Compile Include="Assets\scripts\LightManager.cs" />
     <Compile Include="Assets\scripts\LocalPlayerLight.cs" />
